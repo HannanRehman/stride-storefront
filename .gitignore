@@ -8,3 +8,4 @@ playwright-report/
 *.tsbuildinfo
 .tools/
 *.log
+supabaseprojectid.txt
