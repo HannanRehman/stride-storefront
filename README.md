@@ -40,9 +40,9 @@ The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./
 
 ## Optional Supabase catalog
 
-The official Supabase Postgres best-practices skill is installed at `.agents/skills/supabase-postgres-best-practices/`. This iteration applies its RLS, types, constraints and indexing guidance to a read-only public presentation catalog. It does not create or modify a hosted Supabase project.
+The official Supabase Postgres best-practices skill is installed at `.agents/skills/supabase-postgres-best-practices/`. Its RLS, types, constraints and indexing guidance is applied to the read-only public presentation catalog. The hosted catalog is now provisioned in project `simfvguqxbqevvrgkkdp`, with 36 published products and verified public read access.
 
-1. In your Supabase project, apply `supabase/migrations/202610140001_public_catalog.sql` using the SQL editor or your normal migration workflow.
+1. For a new database, apply `supabase/migrations/20261013213040_public_catalog.sql` using the SQL editor or your normal migration workflow. This migration has already been applied to the connected project; do not apply it there again.
 2. Apply `supabase/seed.sql`. The seed upserts the original demo records without deleting existing rows.
 3. Copy `.env.example` to `.env.local` and set your project URL and **publishable** key:
 
@@ -64,7 +64,17 @@ To regenerate the seed after changing `src/lib/catalog.ts`:
 npx.cmd tsx scripts/generate-supabase-seed.ts
 ```
 
-Hosted Supabase migration, RLS enforcement and connection have not been exercised because no project credentials were supplied. Local fallback behavior has been tested.
+Hosted migration, seed import and public Data API access have been verified. A transaction that temporarily inserted an unpublished probe confirmed that anonymous users cannot read unpublished products, then rolled back the probe. Both `anon` and `authenticated` have SELECT privileges only. Supabase's security advisor returned no findings.
+
+The local `.env.local` is configured for the connected project and is excluded from Git. To connect the Vercel deployment, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` using the corresponding local values, select Production, and redeploy. Keep `NEXT_PUBLIC_SITE_URL=https://stride-storefront-peach.vercel.app` for the deployed site. Only a publishable key is required.
+
+To recheck the public connection without an account or privileged key:
+
+```powershell
+npx.cmd tsx scripts/verify-supabase.ts
+```
+
+The verifier checks all 36 IDs, prices, sale prices and size availability against the original catalog. Seed generation also rejects negative/noninteger prices and invalid compare-at prices.
 
 ## Validation
 

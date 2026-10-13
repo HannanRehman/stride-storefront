@@ -1,5 +1,17 @@
 import { writeFileSync } from "node:fs";
 import { products } from "../src/lib/catalog";
+for (const product of products) {
+  if (!Number.isSafeInteger(product.price) || product.price < 0) {
+    throw new Error(`Invalid price for ${product.slug}.`);
+  }
+  if (
+    product.compareAt !== undefined &&
+    (!Number.isSafeInteger(product.compareAt) ||
+      product.compareAt <= product.price)
+  ) {
+    throw new Error(`Invalid sale price for ${product.slug}.`);
+  }
+}
 const quote = (value: string) => "'" + value.replaceAll("'", "''") + "'";
 const rows = products.map(
   (p) =>

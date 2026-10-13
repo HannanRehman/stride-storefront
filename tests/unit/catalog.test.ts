@@ -7,6 +7,7 @@ describe("public catalog rules", () => {
     expect(new Set(products.map((p) => p.slug)).size).toBe(products.length);
     for (const p of products) {
       expect(Number.isInteger(p.price)).toBe(true);
+      expect(p.price, p.slug).toBeGreaterThanOrEqual(0);
       expect(
         p.sizes.every((s) => s.stock >= 0 && Number.isInteger(s.stock)),
       ).toBe(true);

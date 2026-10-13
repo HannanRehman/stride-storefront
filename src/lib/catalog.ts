@@ -119,8 +119,11 @@ export const products: Product[] = families.flatMap((family, familyIndex) =>
   audiences.flatMap((audience, audienceIndex) =>
     [0, 1].map((edition) => {
       const rank = familyIndex * 6 + audienceIndex * 2 + edition;
+      const kidsReduction = family.category === "clothing" ? 1400 : 2800;
       const price =
-        family.price - (audience === "kids" ? 2800 : 0) + edition * 1200;
+        family.price -
+        (audience === "kids" ? kidsReduction : 0) +
+        edition * 1200;
       const sale = edition === 1 && familyIndex % 2 === 0;
       const name = `${family.name}${edition ? " SE" : ""}`;
       const slug = `${name.toLowerCase().replaceAll(" ", "-")}-${audience}`;
