@@ -1,1 +1,104 @@
-# nikereplica-
+# Stride public storefront
+
+A responsive original sportswear storefront built with Next.js App Router, TypeScript, Tailwind CSS, Lucide, and shadcn-style Button/Dialog primitives backed by Radix. The theme uses clean black/white surfaces, strong type, editorial photography, and borderless product cards. [Lenis](https://github.com/darkroomengineering/lenis) smooths mouse-wheel and anchor scrolling. Touch remains native; reduced-motion preferences disable smoothing, and dialogs pause background scrolling.
+
+## Run locally
+
+Node 24 and npm 11 were used during development. Install dependencies once, then start the app:
+
+```powershell
+cd E:\Nikereplica
+npm.cmd install
+npm.cmd run dev
+```
+
+Open [localhost:3000](http://localhost:3000). On Windows, `npm.cmd` avoids PowerShell's disabled `npm.ps1` shim. On other platforms use `npm`.
+
+No environment variables or backend account are required for the bundled public demo.
+
+## Implemented in this step
+
+- Original Stride identity, copy, and seven generated campaign/product assets, hosted locally.
+- Homepage: campaign, editorial panels, featured product rail, categories, classic collections, sports, story, category matrix and footer.
+- Men/women/kids landings and category pages; collection and new-arrival pages.
+- 36 original demo catalog entries, shared across listing, detail, search, favorites and bag. Illustration is shared within product families and their audience/SE editions; it does not imply unique photographed stock.
+- Filters for sport, color, price, available size and sale; sort, numbered pagination, active filters and shareable URL state.
+- Accessible mobile navigation, search dialog/typeahead, mobile filter sheet, keyboard controls and focus management.
+- Product image zoom, one illustrated colorway per product, size selection, sold-out size handling, sizing/care information and related products.
+- Favorites and editable bag persisted on the current device. Quantity limits use demo data. Bag-to-favorites movement is one atomic local update.
+- Help, size guide, shipping/returns, privacy and terms; branded 404, loading, error and image fallback states.
+- Metadata, canonical routes, sitemap, robots, locally hosted licensed fonts.
+- Supabase public-catalog migration, repeatable SQL seed and optional server-side read adapter with public-read RLS.
+
+## Scope and remaining work
+
+This iteration builds the **public storefront** requested after planning. It does not complete the entire master specification. Purchasing, payment, checkout, accounts, authenticated cart/favorite sync, order history, real inventory reservation, shipping and email are not enabled. The UI does not claim to accept orders. No card data is collected.
+
+Product pages currently have one original concept image and one colorway each, rather than full multi-view/variant galleries. Category-specific technical facets, ratings/review submission, real member benefits, and final product fit charts belong to later milestones. No fictional customer reviews are displayed. The catalog is bounded to 200 published entries in the current Supabase read adapter; larger/live catalogs need database-side query pagination.
+
+The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) is the broader roadmap, and [docs/PUBLIC_STOREFRONT_DESIGN.md](./docs/PUBLIC_STOREFRONT_DESIGN.md) records this step's design and scope. Supabase is the latest requested backend direction and supersedes the plan's provisional Prisma/Better Auth choice for future account/commerce implementation.
+
+## Optional Supabase catalog
+
+The official Supabase Postgres best-practices skill is installed at `.agents/skills/supabase-postgres-best-practices/`. This iteration applies its RLS, types, constraints and indexing guidance to a read-only public presentation catalog. It does not create or modify a hosted Supabase project.
+
+1. In your Supabase project, apply `supabase/migrations/202610140001_public_catalog.sql` using the SQL editor or your normal migration workflow.
+2. Apply `supabase/seed.sql`. The seed upserts the original demo records without deleting existing rows.
+3. Copy `.env.example` to `.env.local` and set your project URL and **publishable** key:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+4. Restart the dev server. Confirm the 36 published entries appear.
+
+Only published rows are readable by `anon`/`authenticated`. Those roles have no catalog write privileges. Never place a service-role key in a public variable. When configuration is absent the app uses its local catalog; when configuration is present but broken it reports a load error instead of silently substituting local data. The catalog's JSON sizing/quantity data is presentation data, not a transaction-safe stock ledger. A later commerce migration must normalize variant inventory, authorize private records and implement checkout transactions separately.
+
+Catalog reads are deduplicated within a render, with a 60-second page revalidation interval. Set `NEXT_PUBLIC_SITE_URL` to the actual hostname when deploying so canonical URLs and the sitemap are accurate. Database availability is needed during a build when the Supabase adapter is configured.
+
+To regenerate the seed after changing `src/lib/catalog.ts`:
+
+```powershell
+npx.cmd tsx scripts/generate-supabase-seed.ts
+```
+
+Hosted Supabase migration, RLS enforcement and connection have not been exercised because no project credentials were supplied. Local fallback behavior has been tested.
+
+## Validation
+
+```powershell
+npm.cmd run lint
+npm.cmd run typecheck
+npm.cmd run test
+npm.cmd run build
+npx.cmd playwright install chromium
+npm.cmd run test:e2e
+```
+
+If Microsoft Edge is already installed, the browser tests can use it without downloading Chromium:
+
+```powershell
+$env:PLAYWRIGHT_CHANNEL = 'msedge'
+npm.cmd run test:e2e
+```
+
+Playwright starts the local dev server if needed. Tests use a fresh browser context, not your normal browser's stored bag. See [docs/VALIDATION.md](./docs/VALIDATION.md) for the completed checks and limitations.
+
+Production dependencies passed `npm audit --omit=dev` at implementation time. The full audit reported five linked high-severity entries in the lint-only `eslint-config-next → fast-glob → micromatch → braces` chain. The latest published braces version had no patched release at that check; do not force an unrelated Next.js downgrade to silence the report. Recheck development dependency updates before using lint tooling on untrusted patterns.
+
+## Images and fonts
+
+Images were generated through the built-in imagegen tool without reference images. Their saved paths and exact prompts are documented in [docs/ASSET_CREDITS.md](./docs/ASSET_CREDITS.md); machine-readable dimensions/provenance are in [docs/assets.json](./docs/assets.json). No Nike photos, logos, slogans, font files or source code are included.
+
+DM Sans and Barlow Condensed are locally served through Fontsource under the SIL Open Font License. Their licenses are included in the installed packages. The standalone lettermark and missing-image illustration are original SVG code.
+
+Screenshot evidence is saved under `artifacts/`. To refresh it while the app runs:
+
+```powershell
+$env:PLAYWRIGHT_CHANNEL = 'msedge'
+node scripts/preview-review.mjs
+```
+
+Unknown products render the branded not-found page with `noindex` metadata. Next.js may return HTTP 200 if streaming has already begun, or 404 before streaming starts; the browser test verifies the fallback and indexing behavior.

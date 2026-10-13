@@ -1,0 +1,58 @@
+[
+  {
+    "name": "hero",
+    "asset": "/images/hero.webp",
+    "width": 1672,
+    "height": 941,
+    "bytes": 297952,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  },
+  {
+    "name": "court",
+    "asset": "/images/court.webp",
+    "width": 1100,
+    "height": 1375,
+    "bytes": 183528,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  },
+  {
+    "name": "pace-shoe",
+    "asset": "/images/pace-shoe.webp",
+    "width": 1100,
+    "height": 1100,
+    "bytes": 89236,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  },
+  {
+    "name": "court-shoe",
+    "asset": "/images/court-shoe.webp",
+    "width": 1100,
+    "height": 1100,
+    "bytes": 96068,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  },
+  {
+    "name": "training",
+    "asset": "/images/training.webp",
+    "width": 1100,
+    "height": 1375,
+    "bytes": 130058,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  },
+  {
+    "name": "tee",
+    "asset": "/images/tee.webp",
+    "width": 1100,
+    "height": 1100,
+    "bytes": 90706,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  },
+  {
+    "name": "pack",
+    "asset": "/images/pack.webp",
+    "width": 1100,
+    "height": 1100,
+    "bytes": 90562,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  }
+]
