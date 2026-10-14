@@ -45,8 +45,8 @@ export default async function Home() {
     <main id="main">
       <section className="hero">
         <Image
-          src="/images/hero.webp"
-          alt="Runner finding her stride on a quiet coastal path at sunrise"
+          src="/images/hero-hoodie.webp"
+          alt="Young man wearing a black oversized hoodie against a charcoal concrete wall"
           fill
           preload
           sizes="100vw"

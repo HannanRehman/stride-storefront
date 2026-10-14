@@ -1,10 +1,11 @@
 # Original assets
 
-All seven bitmap assets were created for this project using the **built-in imagegen tool**, without input/reference images. No image was downloaded from Nike or another retailer. They illustrate original demo concepts rather than real merchandise. Compressed WebP copies are saved in `public/images/`; originals remain in the generator's output folder. Only resizing/format compression was applied for website delivery.
+All eight bitmap assets were created for this project using the **built-in imagegen tool**, without input/reference images. No image was downloaded from Nike or another retailer. They illustrate original demo concepts rather than real merchandise. Compressed WebP copies are saved in `public/images/`; originals remain in the generator's output folder. Only resizing/format compression was applied for website delivery.
 
 | Saved asset | Use |
 | --- | --- |
-| `public/images/hero.webp` | Coastal running hero, Pace campaign |
+| `public/images/hero.webp` | Coastal running image, Pace campaign |
+| `public/images/hero-hoodie.webp` | Homepage hero: young man wearing a black hoodie |
 | `public/images/court.webp` | Court editorial and sport campaign |
 | `public/images/training.webp` | Motion editorial and sport campaign |
 | `public/images/pace-shoe.webp` | Chalk/graphite running concept |
@@ -13,6 +14,10 @@ All seven bitmap assets were created for this project using the **built-in image
 | `public/images/pack.webp` | Slate backpack concept |
 
 ## Final generation prompts
+
+### hero-hoodie
+
+Use case: photorealistic-natural. Create an original premium sportswear and streetwear website hero photograph, wide landscape 16:9 composition. One young adult South Asian man, about 20 years old, with dark textured hair and natural skin texture, wearing a high-quality plain black heavyweight oversized pullover hoodie, hood down, ribbed cuffs, realistic fleece fabric, kangaroo pocket, relaxed dark trousers. Confident quiet expression, hands casually in the hoodie pocket, body turned slightly toward camera. Frame from head to mid thigh; keep full head visible with generous headroom. Place the model around the right third, at 72 percent of the frame width, for an existing website whose white headline overlays the left half. Model face near the upper quarter, shoulders and chest clearly readable, body extending into lower right. Backdrop is a subdued charcoal concrete urban wall and soft architectural depth, natural overcast side lighting with a subtle rim highlighting the black hoodie silhouette, very restrained monochrome palette, authentic clothing campaign photography, editorial polish, crisp garment texture, natural proportions and realistic hands. Left half stays dark, quiet, spacious and free of objects so HTML text remains legible; model's upper half must work when the right-hand section is cropped vertically for a phone hero. Original composition, no copied campaign, no text, no watermark, no logos or brand marks. No other people.
 
 ### hero
 

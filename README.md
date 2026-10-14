@@ -18,7 +18,7 @@ No environment variables or backend account are required for the bundled public 
 
 ## Implemented in this step
 
-- Original Stride identity, copy, and seven generated campaign/product assets, hosted locally.
+- Original Stride identity, copy, and eight generated campaign/product assets, hosted locally.
 - Homepage: campaign, editorial panels, featured product rail, categories, classic collections, sports, story, category matrix and footer.
 - Men/women/kids landings and category pages; collection and new-arrival pages.
 - 36 original demo catalog entries, shared across listing, detail, search, favorites and bag. Illustration is shared within product families and their audience/SE editions; it does not imply unique photographed stock.

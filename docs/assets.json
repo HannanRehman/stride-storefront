@@ -54,5 +54,13 @@
     "height": 1100,
     "bytes": 90562,
     "provenance": "Original generated image; built-in imagegen tool, no reference images."
+  },
+  {
+    "name": "hero-hoodie",
+    "asset": "/images/hero-hoodie.webp",
+    "width": 1672,
+    "height": 941,
+    "bytes": 35664,
+    "provenance": "Original generated image; built-in imagegen tool, no reference images. Optimized WebP copy."
   }
 ]
