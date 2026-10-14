@@ -8,7 +8,7 @@ Validated during the October 14, 2026 implementation session in `E:\Nikereplica`
 | --- | --- |
 | `npm.cmd run lint` | Passed, no errors or warnings |
 | `npm.cmd run typecheck` | Passed |
-| `npm.cmd run test` | Passed: 7 business-rule tests |
+| `npm.cmd run test` | Passed: 10 catalog/account-input tests |
 | `npm.cmd run build` | Passed: Next.js 16.4.0 production build |
 | `npm.cmd run test:e2e` with `PLAYWRIGHT_CHANNEL=msedge` | Passed: all 9 browser tests in the final full-suite run |
 | `npm.cmd audit --omit=dev` | Passed: zero production dependency vulnerabilities at the check |
@@ -42,7 +42,7 @@ Initial checks identified low-contrast secondary text and missing focus restorat
 - Tests ran against the local public demo and Microsoft Edge's Chromium engine. Safari/Firefox, real-device testing and comprehensive screen-reader auditing were not performed.
 - Axe smoke results do not constitute a full accessibility audit.
 - The original public storefront checks used fallback data. Hosted Supabase checks and their results are recorded below.
-- Accounts, checkout, real stock transactions, live payments and email are outside this iteration and were not tested or represented as complete.
+- Checkout, real stock transactions, orders and live payments remain outside this iteration. Account verification is recorded below; signup/recovery email delivery remains unverified.
 - Product family/audience/SE entries share concept imagery. Every PDP currently has one illustrated colorway/image; full variants and multi-view assets remain future work.
 - Next.js streamed not-found responses can return HTTP 200, with branded fallback content and `noindex`; non-streamed responses return 404. The test handles the documented framework behavior.
 - The full dependency audit includes five related development-only entries in the Next.js lint dependency chain. Details are recorded in the README; the production dependency audit passed.
@@ -62,3 +62,18 @@ Project: `simfvguqxbqevvrgkkdp`. Applied migration: `20261013213040_public_catal
 - Supabase's security advisor returned zero findings. Its performance advisor reported two newly created indexes as unused; retained them for the intended catalog queries. See [unused-index advisor guidance](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index).
 
 Vercel environment-variable activation is a separate deployment step; these checks do not claim that the live deployment has received the Supabase settings.
+
+## Customer accounts verification
+
+Applied hosted migration: `20261014095017_customer_accounts.sql`. Real product data and checkout remain deferred.
+
+- Lint, typecheck, all 10 unit tests and the production build passed after account implementation.
+- All 9 original storefront browser tests passed with the hosted catalog configured.
+- All 3 account browser tests passed: protected-route redirects and expired callback handling, rejected foreign-origin writes and anonymous shopping access, and a hosted account journey. The journey covered real Supabase password sign-in, one-time guest merge, bag persistence after refresh, profile save/reload, address create/edit/delete, bag/favorites on a second browser, and logout without carrying account selections into guest storage.
+- The hosted journey used a designated temporary `.invalid` test account with no outgoing email. Its auth and customer records were removed afterward. Routine runs skip this one journey unless isolated `ACCOUNT_TEST_EMAIL` and `ACCOUNT_TEST_PASSWORD` fixtures are supplied.
+- `supabase/tests/customer_accounts.sql` passed against the hosted database, with its complete fixture rolled back. Assertions covered owner-only reads, denied cross-user updates/inserts, denied anonymous reads/RPC, repeatable merge receipts, quantity caps and atomic bag-to-favorites movement.
+- All five customer tables have RLS enabled; the shopping function uses invoker permissions. Supabase's security advisor returned no findings.
+- Axe scans of the recovery/account address pages found no serious or critical violations. Desktop and mobile login screenshots were visually inspected; production captures are `artifacts/login-desktop.png` and `artifacts/login-mobile.png`.
+- No new packages were required. Private account/API responses are uncached, while the public storefront retains its existing catalog behavior.
+
+Signup and recovery code is present, but `AUTH_EMAIL_ENABLED` defaults to false. Real confirmation/recovery email delivery, valid email callback acceptance and recovery password update have not been exercised; those require sender and redirect setup and acceptance checks in `docs/AUTH_SETUP.md`. Vercel deployment activation is not claimed by these local checks.

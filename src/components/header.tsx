@@ -2,7 +2,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Heart, Menu, Search, ShoppingBag } from "lucide-react";
+import {
+  ArrowUpRight,
+  Heart,
+  Menu,
+  Search,
+  ShoppingBag,
+  UserRound,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +28,7 @@ const navigation = [
   { label: "Sale", href: "/shop/all?sale=true" },
 ];
 export function Header() {
-  const { bag, favorites, catalog } = useStore();
+  const { bag, favorites, catalog, user } = useStore();
   const [mobile, setMobile] = useState(false);
   const [search, setSearch] = useState(false);
   const [query, setQuery] = useState("");
@@ -67,6 +74,10 @@ export function Header() {
           <Link href="/help">Help</Link>
           <span aria-hidden="true">|</span>
           <Link href="/help#our-story">Our story</Link>
+          <span aria-hidden="true">|</span>
+          <Link href={user ? "/account" : "/login"}>
+            {user ? "Your account" : "Sign in"}
+          </Link>
         </div>
       </div>
       <header
@@ -162,6 +173,13 @@ export function Header() {
           )}
         </nav>
         <div className="header-actions">
+          <Link
+            className="icon-button account-header"
+            href={user ? "/account" : "/login"}
+            aria-label={user ? "Your account" : "Sign in"}
+          >
+            <UserRound size={21} />
+          </Link>
           <button
             className="search-trigger"
             onClick={() => {
@@ -237,6 +255,11 @@ export function Header() {
             </DialogClose>
             <DialogClose asChild>
               <Link href="/help">Help & our story</Link>
+            </DialogClose>
+            <DialogClose asChild>
+              <Link href={user ? "/account" : "/login"}>
+                {user ? "Your account" : "Sign in / create account"}
+              </Link>
             </DialogClose>
           </nav>
         </DialogContent>

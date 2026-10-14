@@ -29,14 +29,27 @@ No environment variables or backend account are required for the bundled public 
 - Help, size guide, shipping/returns, privacy and terms; branded 404, loading, error and image fallback states.
 - Metadata, canonical routes, sitemap, robots, locally hosted licensed fonts.
 - Supabase public-catalog migration, repeatable SQL seed and optional server-side read adapter with public-read RLS.
+- Account sign-in/out, private profile/addresses, server bag/favorites, repeatable guest merge and conditional signup/recovery forms.
 
 ## Scope and remaining work
 
-This iteration builds the **public storefront** requested after planning. It does not complete the entire master specification. Purchasing, payment, checkout, accounts, authenticated cart/favorite sync, order history, real inventory reservation, shipping and email are not enabled. The UI does not claim to accept orders. No card data is collected.
+The public storefront and account milestone are implemented. Accounts include email/password sign-in, conditional signup/recovery, protected profile and saved addresses, account bag/favorites and repeatable guest merging. Purchasing, payment, checkout, order history, real inventory reservation and shipping are not enabled. The UI does not claim to accept orders. No card data is collected. Real products, photography, variants and inventory are deferred until the assortment is supplied.
 
 Product pages currently have one original concept image and one colorway each, rather than full multi-view/variant galleries. Category-specific technical facets, ratings/review submission, real member benefits, and final product fit charts belong to later milestones. No fictional customer reviews are displayed. The catalog is bounded to 200 published entries in the current Supabase read adapter; larger/live catalogs need database-side query pagination.
 
-The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) is the broader roadmap, and [docs/PUBLIC_STOREFRONT_DESIGN.md](./docs/PUBLIC_STOREFRONT_DESIGN.md) records this step's design and scope. Supabase is the latest requested backend direction and supersedes the plan's provisional Prisma/Better Auth choice for future account/commerce implementation.
+The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) is the broader roadmap, and [docs/PUBLIC_STOREFRONT_DESIGN.md](./docs/PUBLIC_STOREFRONT_DESIGN.md) records the initial storefront design. Supabase PostgreSQL and Supabase Auth replace the provisional Prisma/Better Auth choice. See [docs/ACCOUNT_IMPLEMENTATION.md](./docs/ACCOUNT_IMPLEMENTATION.md) for account architecture and [docs/AUTH_SETUP.md](./docs/AUTH_SETUP.md) for deployment activation.
+
+## Accounts
+
+`supabase/migrations/20261014095017_customer_accounts.sql` is applied to the connected project. It adds customer profiles, addresses, bag items, favorites and guest-merge receipts. Every table has owner-only RLS; anonymous users have no privileges. The shopping RPC runs with caller permissions and serializes each user's mutations. No service-role key is used by the application.
+
+Sign-in, sign-out, profile/addresses and account shopping are enabled when the two Supabase variables are set. Signup and recovery additionally require `AUTH_EMAIL_ENABLED=true` after email delivery and redirect configuration are verified. The default is disabled, with a clear message in the forms. Configuring this flag alone does not configure email delivery.
+
+Sessions use HTTP-only, SameSite=Lax cookies and Secure cookies in production. Proxy refreshes sessions on account/auth routes, while each protected page and write verifies the user again. Private responses use `private, no-store`. JSON mutations reject foreign origins. Auth endpoints add an eight-attempt/ten-minute throttle per IP/action/email within each server instance, alongside Supabase Auth's provider-side rate limits; it is not a shared distributed application limiter. Tune provider limits and configure production bot protection before broader launch.
+
+Signed-in shopping is stored on the server. Guest bag quantities merge into existing account quantities with demo stock caps; favorites are unioned. A merge receipt prevents retries from adding items twice. Guest selections clear only after success. Failed saves show an explicit retry message, and no account selections are copied into guest storage on logout. Focus and same-browser tab notifications refresh account data; this is not a live subscription across devices.
+
+The SQL assertions in `supabase/tests/customer_accounts.sql` use temporary fixtures inside a rolled-back transaction. They check ownership isolation, denied anonymous access, quantity caps, repeated merges and atomic bag-to-favorites movement. The optional hosted browser journey accepts `ACCOUNT_TEST_EMAIL` and `ACCOUNT_TEST_PASSWORD` for an isolated temporary account; use no real customer account. Without these variables that one journey is skipped. Email delivery is a separate manual acceptance check.
 
 ## Optional Supabase catalog
 

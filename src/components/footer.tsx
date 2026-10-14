@@ -34,6 +34,7 @@ const groups = [
       ["Our story", "/help#our-story"],
       ["Our approach", "/help#our-approach"],
       ["Favorites", "/favorites"],
+      ["Your account", "/account"],
       ["Privacy", "/privacy"],
     ],
   },

@@ -11,9 +11,9 @@ export default function Page() {
       <section>
         <h2>Using the demo</h2>
         <p>
-          You may browse, save favorites and build a local bag. Purchasing is
-          not available. No product-performance, delivery, warranty or refund
-          promise is made.
+          You may browse, save favorites and build a bag, with account syncing
+          when you sign in. Purchasing is not available. No product-performance,
+          delivery, warranty or refund promise is made.
         </p>
       </section>
       <section>

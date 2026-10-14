@@ -37,12 +37,13 @@ export default function Page() {
         <p>
           Use category filters to narrow the catalog. Open a product, select an
           available size and add it to your bag. Hearts save favorites. Both
-          your bag and favorites stay in this browser unless you clear site
-          storage.
+          your guest bag and favorites stay in this browser. Sign in to save
+          them to your account and use them across devices.
         </p>
         <p>
-          Purchasing and user accounts are not enabled in this public version.
-          For more information, see{" "}
+          Purchasing is not enabled in this demo. Registration and password
+          recovery depend on the store’s email setup; the account forms explain
+          when those features are unavailable. For more information, see{" "}
           <Link href="/shipping-returns">shipping and returns</Link> or our{" "}
           <Link href="/privacy">privacy information</Link>.
         </p>

@@ -10,19 +10,22 @@ export default function Page() {
       <section>
         <h2>What is saved</h2>
         <p>
-          Your bag and favorites are stored in this browser’s local storage
-          under a Stride-specific key. They contain product identifiers, chosen
-          sizes, quantities and saved product identifiers. No payment details,
-          shipping addresses or passwords are collected in this version.
+          Guest bag items and favorites are stored in this browser’s local
+          storage. When you sign in, those selections are merged into your
+          private account and saved in Supabase. Your account can also store
+          your name, phone number and addresses you choose to add. Supabase Auth
+          manages your sign-in email and password. No payment details are
+          collected.
         </p>
       </section>
       <section>
         <h2>Cookies and tracking</h2>
         <p>
-          This version does not install analytics, advertising scripts or
-          optional tracking cookies. There are no optional cookie preferences to
-          manage. The hosting provider may process ordinary request logs; review
-          its policies before a public launch.
+          Essential session cookies keep you signed in and support confirmation
+          and password recovery. This version does not install analytics,
+          advertising scripts or optional tracking cookies. The hosting and
+          authentication providers may process ordinary request and security
+          logs.
         </p>
       </section>
       <section>
@@ -30,16 +33,18 @@ export default function Page() {
         <p>
           The storefront uses bundled demo catalog data unless a Supabase
           catalog is configured by its operator. In that case, the server reads
-          published product data. Guest favorites and bag contents are still
-          stored locally.
+          published product data. Guest selections stay local until a successful
+          account merge; account selections are protected by ownership rules.
         </p>
       </section>
       <section>
         <h2>Clearing saved information</h2>
         <p>
           Remove items through your bag or favorites page, or clear site storage
-          in your browser settings. Clearing storage removes your saved
-          selections on this device.
+          in your browser settings. Clearing browser storage removes guest
+          selections and local sessions; it does not delete account data in
+          Supabase. You can edit your profile and remove saved addresses through
+          your account. Contact the store owner for account deletion requests.
         </p>
       </section>
     </main>

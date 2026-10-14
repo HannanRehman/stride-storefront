@@ -2,12 +2,12 @@
 
 **Prepared:** October 14, 2026  
 **Source of requirements:** [NIKE_INSPIRED_CODEX_MASTER_SPEC.md](./NIKE_INSPIRED_CODEX_MASTER_SPEC.md)  
-**Current status:** Public storefront implemented; broader accounts/checkout roadmap remains pending. See `docs/PUBLIC_STOREFRONT_DESIGN.md` and `README.md` for the current delivery scope.  
+**Current status:** Public storefront and account implementation built with Supabase. Customer signup/recovery activation requires configured email delivery. Real products, variants, inventory and checkout are deferred. See `README.md` and `docs/ACCOUNT_IMPLEMENTATION.md`.  
 **Purpose:** Build a complete sportswear storefront with a layout closely inspired by the Nike reference, following the supplied specification.
 
 ## 1. Scope and working decisions
 
-The repository currently contains only the master specification. There is no application, existing stack, database, or asset collection to preserve. This plan is the preparation step requested by the user; application development begins in the next step.
+At initial planning the repository contained only the master specification. The application, original assets and hosted Supabase catalog are now implemented. The user has requested accounts next and deferred real product setup until products are available.
 
 The finished website will support browsing, combined filters and sorting, search, product colors and sizes, favorites, a persistent shopping bag, registration and sign-in, checkout, order confirmation, and account order history. The highest design priority is the product listing page, followed by the homepage and product detail page.
 
@@ -17,8 +17,8 @@ The finished website will support browsing, combined filters and sorting, search
 | Brand | Use **Stride** as a provisional original sportswear brand, with a simple wordmark and original product families. Keep brand content in configuration so it can be replaced later. |
 | Identity and content | Follow the specification's boundary: original logo, product names, campaign copy, and original or licensed imagery. |
 | Currency | USD for the initial demo, formatted centrally. Do not present a working multi-currency selector until conversion and pricing are implemented. |
-| Database | Prefer PostgreSQL when a usable local connection is available; otherwise use SQLite for the runnable local demo. Keep commerce queries behind shared service functions. |
-| Authentication | Real email/password authentication using Better Auth as the specification's allowed equivalent to Auth.js. |
+| Database | Hosted Supabase PostgreSQL with versioned SQL migrations and database-enforced row ownership. |
+| Authentication | Supabase Auth email/password authentication, server-verified users and HTTP-only session cookies. Signup/recovery need configured email. |
 | Checkout | Explicit demo checkout by default: record an order with `paid=false`, collect no card details, and show a real order confirmation. Hosted Stripe is conditional on working credentials and completed provider validation. |
 | Shipping and tax | Central, clearly labeled demo rules. No real delivery promises or claim of production tax compliance. |
 | Reviews | Clearly marked sample reviews; no fictional verified-customer claims. |
@@ -121,18 +121,18 @@ Validate at 320, 375, 390, 768, 1024, 1280, 1440, and 1920px. Preserve readabili
 | Styling | Tailwind CSS with shared design tokens and a small set of reusable layout classes |
 | UI primitives | shadcn/ui or accessible underlying primitives where useful for dialogs, sheets, menus, and accordions |
 | Icons | Lucide, consistently sized and accompanied by accessible names |
-| Persistence | Prisma with PostgreSQL or local SQLite fallback, migrations, and repeatable seeds |
-| Auth | Better Auth, secure session cookies, database-backed users/sessions, library-managed password hashing |
+| Persistence | Supabase PostgreSQL, versioned SQL migrations, repeatable seeds and owner-only RLS |
+| Auth | Supabase Auth, HTTP-only session cookies, server-side identity checks and managed password hashing |
 | Validation | Zod schemas reused across forms and server operations |
 | Interactive state | Small client components and a cart/favorites provider; URL state for catalog filters |
 | Images | `next/image`, local assets, responsive sizing, explicit dimensions and fallbacks |
 | Tests | Vitest for business rules, Playwright for journeys, axe for accessibility smoke checks |
 
-At foundation time, select mutually compatible stable versions, verify Node support, and commit the dependency lockfile. Do not mix configuration examples from different major versions. In particular, use the selected Prisma version's configuration, generated-client, and driver-adapter conventions.
+Keep mutually compatible dependency versions and the committed lockfile. Read the installed Next.js guides before code changes, and use Supabase SSR/PostgreSQL conventions for the implemented backend.
 
-Better Auth documents [Next.js integration](https://better-auth.com/docs/integrations/next), a [Prisma adapter](https://better-auth.com/docs/adapters/prisma), and [email/password authentication](https://better-auth.com/docs/authentication/email-password). Its auth schema must be integrated with the commerce schema and migrated using Prisma. Prisma documents [SQLite support and driver setup](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/sqlite).
+Supabase Auth now supersedes the initial Better Auth proposal. Use `@supabase/ssr` server clients, Next.js Proxy session refresh and verified identity in each protected handler. Supabase manages the auth schema; customer migrations reference `auth.users` without changing its structure.
 
-Changing from SQLite to PostgreSQL later requires provider-specific migration preparation and a tested data transfer; it is not just a connection-string change. A deployment must use durable database storage rather than an ephemeral local SQLite file.
+The deployment uses durable hosted Supabase storage. Local catalog fallback is a presentation demo, not a replacement for customer account persistence.
 
 ### Proposed project structure
 
@@ -145,7 +145,9 @@ src/
     (auth)/                   # Login, registration, password recovery
     (account)/                # Profile, addresses, orders
     (info)/                   # Help, policies, size guide
-    api/auth/[...all]/         # Authentication handlers
+    api/auth/[action]/         # Supabase authentication handlers
+    api/account/              # Profile, addresses and account shopping
+    auth/callback/            # PKCE confirmation/recovery callback
     api/search/               # Bounded typeahead endpoint
     not-found.tsx
     sitemap.ts
@@ -165,10 +167,10 @@ src/
     validation.ts             # Input contracts
     config.ts                 # Brand, navigation, shipping/demo mode settings
   data/                       # Central original seed content and asset manifest
-prisma/
-  schema.prisma
+supabase/
   migrations/
-  seed.ts
+  seed.sql
+  tests/                      # Rolled-back database assertions
 public/images/                # Campaigns, products, collections and fallback media
 tests/
   unit/
@@ -367,14 +369,17 @@ Provide `dev`, database migration, database seed, and explicit test/demo reset s
 
 - [x] Inspect the supplied specification and current repository.
 - [x] Save this implementation plan before building.
-- [ ] Working Next.js application and responsive shared shell.
-- [ ] Original identity, coherent asset collection, and source/license manifest.
-- [ ] Migrations and repeatable seed with at least 36 products.
-- [ ] Homepage, audience/collection pages, reusable catalog, and working search.
-- [ ] Facets, sorting, pagination, query-state restoration, and truthful product counts.
-- [ ] PDP media, variants, sizes, size guide, details, and related products.
-- [ ] Persistent guest/account bag and favorites with safe merging.
-- [ ] Secure account flows, profile/addresses, and isolated order history.
+- [x] Working Next.js application and responsive shared shell.
+- [x] Original identity and concept assets with a source/license manifest; actual product imagery deferred.
+- [x] Migrations and repeatable seed with 36 demo products; real assortment deferred.
+- [x] Homepage, audience/collection pages, reusable catalog, and working search.
+- [x] Facets, sorting, pagination, query-state restoration, and truthful product counts for current demo data.
+- [x] Demo PDP image zoom, sizes, size guide, details and related products.
+- [ ] Real product media, color variants and inventory (deferred until supplied).
+- [x] Persistent guest/account bag and favorites with repeatable merging.
+- [x] Account pages, login/logout, profile/addresses and private data isolation.
+- [ ] Customer signup and password recovery email activation and delivery acceptance checks.
+- [ ] Isolated order history (deferred with checkout).
 - [ ] Transactional, idempotent demo checkout and protected receipts.
 - [ ] Useful info pages, empty/loading/error states, accessibility, and SEO.
 - [ ] Passing lint, typecheck, business-rule tests, browser journeys, and production build.
@@ -382,6 +387,6 @@ Provide `dev`, database migration, database seed, and explicit test/demo reset s
 
 The README will identify the chosen database, tested dependency versions, required environment variables, exact setup commands, demo shipping/tax behavior, payment and email configuration, asset limitations, and any conditional capabilities. Real payments, email delivery, live fulfillment, final merchant policies, and public hosting must be listed according to what is actually configured and verified.
 
-**Current implementation note:** The user requested the public storefront first and selected Supabase guidance. The Next.js public shell, editorial homepage, catalog/search, product pages, guest bag/favorites, info pages, original imagery and Supabase public-catalog adapter have been implemented. The connected Supabase project now contains the 36 seeded products; its public read API, published-only RLS and restricted write privileges have been verified. Local environment settings are prepared; the Vercel deployment must receive both Supabase variables to switch its catalog source. This does not mark the complete full-stack milestones above as finished. Supabase supersedes the initial provisional backend/auth choice for subsequent work. Auth, full product variants/galleries, and transactional checkout remain separate milestones.
+**Current implementation note:** The public storefront, 36-product demo catalog and customer account code are implemented. Hosted catalog RLS and customer ownership rules have been verified. Accounts include protected profile/addresses, sign-in/out, account shopping and repeatable guest merges. Registration and recovery are implemented but deliberately disabled until email delivery is configured and verified. Vercel must have both Supabase variables to enable backend access. The user has deferred real products, variants/galleries, inventory and checkout until products are available. This does not mark the full commerce roadmap complete.
 
-**Next action:** Review the public storefront, then continue with the requested backend/account/checkout milestone.
+**Next action:** Activate and verify customer confirmation/recovery email using `docs/AUTH_SETUP.md`, choose the final brand name, and supply real product data when ready. Product variants, stock and checkout remain deferred; account implementation does not mark those commerce milestones complete.
