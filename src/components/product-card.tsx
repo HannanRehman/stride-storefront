@@ -16,7 +16,9 @@ export function ProductCard({
   const saved = favorites.includes(product.id);
   return (
     <article className="product-card">
-      <div className="product-card-media">
+      <div
+        className={`product-card-media${product.preview ? " product-photo" : ""}`}
+      >
         <Link
           href={`/product/${product.slug}`}
           aria-label={`View ${product.name}, ${product.subtitle}`}
@@ -29,15 +31,17 @@ export function ProductCard({
             preload={priority}
           />
         </Link>
-        <button
-          className="product-favorite icon-button"
-          aria-label={`${saved ? "Remove" : "Save"} ${product.name} ${saved ? "from" : "to"} favorites`}
-          aria-pressed={saved}
-          disabled={!ready || saving || Boolean(syncError)}
-          onClick={() => toggleFavorite(product.id)}
-        >
-          <Heart size={20} fill={saved ? "currentColor" : "none"} />
-        </button>
+        {!product.preview && (
+          <button
+            className="product-favorite icon-button"
+            aria-label={`${saved ? "Remove" : "Save"} ${product.name} ${saved ? "from" : "to"} favorites`}
+            aria-pressed={saved}
+            disabled={!ready || saving || Boolean(syncError)}
+            onClick={() => toggleFavorite(product.id)}
+          >
+            <Heart size={20} fill={saved ? "currentColor" : "none"} />
+          </button>
+        )}
       </div>
       <Link href={`/product/${product.slug}`} className="product-card-info">
         {product.badge && (
@@ -53,10 +57,10 @@ export function ProductCard({
         <p>{product.subtitle}</p>
         <p className="product-color">{product.color}</p>
         <div className="product-price">
-          <span>{money(product.price)}</span>
+          <span>{money(product.price, product.currency)}</span>
           {product.compareAt && (
             <>
-              <del>{money(product.compareAt)}</del>
+              <del>{money(product.compareAt, product.currency)}</del>
               <span className="sale">
                 {Math.round(
                   ((product.compareAt - product.price) / product.compareAt) *

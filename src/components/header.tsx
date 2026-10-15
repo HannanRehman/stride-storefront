@@ -326,7 +326,7 @@ export function Header() {
                       {p.name}
                       <small>{p.subtitle}</small>
                     </span>
-                    <span>{money(p.price)}</span>
+                    <span>{money(p.price, p.currency)}</span>
                   </button>
                 ))
               ) : (

@@ -1251,6 +1251,44 @@ button {
   width: 100%;
   background: #f5f5f5;
 }
+.gallery-main.gallery-photo {
+  aspect-ratio: 3 / 4;
+}
+.gallery-photo img {
+  object-fit: contain;
+}
+.product-card-media.product-photo img {
+  object-fit: contain;
+}
+.gallery-thumbnails {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 2px;
+}
+.gallery-thumbnails button {
+  width: 88px;
+  border: 1px solid var(--line);
+  padding: 4px;
+  font-size: 12px;
+}
+.gallery-thumbnails button[aria-pressed="true"] {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+.gallery-thumbnail-image {
+  display: block;
+  position: relative;
+  aspect-ratio: 3 / 4;
+  margin-bottom: 5px;
+}
+.gallery-thumbnail-image img {
+  object-fit: contain;
+}
+.size-selector.size-preview button:disabled {
+  color: var(--ink);
+  text-decoration: none;
+}
 .gallery-zoom {
   position: absolute;
   right: 18px;

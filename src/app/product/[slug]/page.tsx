@@ -30,7 +30,8 @@ export default async function Page({
     .filter(
       (p) =>
         p.id !== product.id &&
-        p.audience === product.audience &&
+        (p.audience === product.audience ||
+          (product.audience === "unisex" && p.audience !== "kids")) &&
         (p.collection === product.collection ||
           p.category !== product.category),
     )
@@ -40,7 +41,13 @@ export default async function Page({
       <div className="breadcrumbs section">
         <Link href="/">Home</Link>
         <span>/</span>
-        <Link href={`/${product.audience}/${product.category}`}>
+        <Link
+          href={
+            product.audience === "unisex"
+              ? `/shop/${product.category}`
+              : `/${product.audience}/${product.category}`
+          }
+        >
           {product.subtitle.split(" ")[0]} {product.category}
         </Link>
         <span>/</span>

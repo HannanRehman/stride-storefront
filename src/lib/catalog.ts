@@ -10,8 +10,11 @@ export type Product = {
   sport: string;
   collection: string;
   price: number;
+  currency?: "USD" | "PKR";
+  preview?: boolean;
   compareAt?: number;
   image: string;
+  images?: { src: string; alt: string; label: string }[];
   color: string;
   colorHex: string;
   badge?: string;
@@ -241,10 +244,11 @@ export function filterProducts(source: Product[], filters: CatalogFilters) {
       return false;
     if (
       filters.price?.length &&
-      !filters.price.some((range) => {
-        const [min, max] = range.split("-").map(Number);
-        return p.price >= min * 100 && p.price < (max || Infinity) * 100;
-      })
+      ((p.currency ?? "USD") !== "USD" ||
+        !filters.price.some((range) => {
+          const [min, max] = range.split("-").map(Number);
+          return p.price >= min * 100 && p.price < (max || Infinity) * 100;
+        }))
     )
       return false;
     if (
@@ -258,6 +262,13 @@ export function filterProducts(source: Product[], filters: CatalogFilters) {
   });
   return results.sort((a, b) => {
     const tie = a.slug.localeCompare(b.slug);
+    // Never compare raw rupee and dollar amounts as if they were one currency.
+    if (filters.sort === "price-asc" || filters.sort === "price-desc") {
+      const currencyGroup = (a.currency ?? "USD").localeCompare(
+        b.currency ?? "USD",
+      );
+      if (currencyGroup) return currencyGroup;
+    }
     if (filters.sort === "price-asc") return a.price - b.price || tie;
     if (filters.sort === "price-desc") return b.price - a.price || tie;
     if (filters.sort === "newest")

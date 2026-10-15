@@ -85,3 +85,12 @@ Signup and recovery code is present, but `AUTH_EMAIL_ENABLED` defaults to false.
 - All 17 browser tests passed in Microsoft Edge: the 9 existing storefront checks and 8 new shopping-feedback checks covering delayed loading, delayed saves, failed saves and retry, expired sessions, server stock rejection, blocked browser storage, genuine guest stock limits, and failed account quantity changes.
 - Lint, TypeScript, all 10 unit tests and the production build passed.
 - Account feedback tests mock session and shopping responses. They do not claim fresh hosted authentication or database verification. No test emails were sent, and these local changes have not been deployed.
+
+## Navy merchandise preview — October 15, 2026
+
+- Added one navy hoodie-and-trouser set at the owner's temporary PKR 7,000 price, with S, M, L and XL planned sizes. Stock quantities are unconfirmed; preview controls do not perform bag/favorites writes.
+- All 19 storefront, shopping-feedback and merchandise-preview browser checks passed before the additional gallery views. The two merchandise checks passed again after adding full-set, hoodie and trouser thumbnails, including successful image loads, selected-image zoom, discovery and mobile overflow verification.
+- All 13 unit tests, lint and TypeScript checks passed. The production build passed with the hosted catalog configured; no database writes, emails or deployment were performed.
+- Inspected the retouched images and mobile product-page screenshot. Edited PNG masters and untouched user originals remain in `products/`; optimized WebP assets live in `public/images/products/`.
+
+The subsequent full pre-push audit passed 22 browser checks (one isolated-account journey skipped), all 13 unit tests, lint, TypeScript and production build. All 61 sitemap pages and their additional internal page links resolved. Production dependencies reported zero vulnerabilities; five known development-only lint dependency entries remain. See the [pre-push audit](./PRE_PUSH_AUDIT_2026-10-15.md) for corrections, screenshots and limits.

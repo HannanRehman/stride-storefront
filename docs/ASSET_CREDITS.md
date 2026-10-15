@@ -1,5 +1,13 @@
 # Original assets
 
+## User-supplied merchandise photos
+
+The four navy hoodie/trouser photographs supplied by the owner are stored unchanged in `products/`. The retouched set master is `products/navy-hoodie-trouser-set-edited.png`, with a compressed website copy at `public/images/products/navy-hoodie-trouser-set.webp`. Built-in imagegen edited the background, removed surrounding clutter and the hangtag, and improved lighting. Existing garment markings were retained; the listing makes no unverified brand-authenticity claim. See [product draft](./NAVY_PRODUCT_DRAFT.md) for details and outstanding commercial information.
+
+The merchandise gallery additionally uses `public/images/products/navy-hoodie.webp` and `public/images/products/navy-trouser.webp`. These were edited from the owner's standalone hoodie and trouser photographs using built-in imagegen, preserving the garment designs while removing shop clutter and matching the neutral studio treatment. Edited PNG masters remain in `products/`; website copies use only resizing and WebP compression after generation.
+
+## Generated concept assets
+
 All eight bitmap assets were created for this project using the **built-in imagegen tool**, without input/reference images. No image was downloaded from Nike or another retailer. They illustrate original demo concepts rather than real merchandise. Compressed WebP copies are saved in `public/images/`; originals remain in the generator's output folder. Only resizing/format compression was applied for website delivery.
 
 | Saved asset | Use |

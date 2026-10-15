@@ -7,9 +7,11 @@ All project documentation and plans live in this folder. Commands and code paths
 - [Implementation roadmap](./IMPLEMENTATION_PLAN.md)
 - [Original master specification](./NIKE_INSPIRED_CODEX_MASTER_SPEC.md)
 - [Admin panel and CMS plan](./ADMIN_CMS_PLAN.md)
+- [Navy product listing draft](./NAVY_PRODUCT_DRAFT.md)
 - [Storefront design](./PUBLIC_STOREFRONT_DESIGN.md)
 - [Account implementation](./ACCOUNT_IMPLEMENTATION.md) and [auth setup](./AUTH_SETUP.md)
 - [Website improvement audit](./WEBSITE_IMPROVEMENT_AUDIT.md)
+- [Pre-push audit: October 15](./PRE_PUSH_AUDIT_2026-10-15.md)
 - [Validation results](./VALIDATION.md)
 - [Asset credits](./ASSET_CREDITS.md) and [brand name ideas](./BRAND_NAME_IDEAS.md)
 
@@ -28,6 +30,10 @@ npm.cmd run dev
 Open [localhost:3000](http://localhost:3000). On Windows, `npm.cmd` avoids PowerShell's disabled `npm.ps1` shim. On other platforms use `npm`.
 
 No environment variables or backend account are required for the bundled public demo.
+
+## Navy merchandise preview
+
+The homepage, clothing catalog and search now include a navy hoodie-and-trouser set with three retouched photographs, a temporary PKR 7,000 price and S–XL planned sizes. It is a presentation preview: stock is unconfirmed, bag/favorite actions are unavailable, and no product record has been written to Supabase. Existing demo products retain their USD pricing; filters and price sorting keep the currencies separate. See the [product notes](./NAVY_PRODUCT_DRAFT.md) for the remaining launch requirements.
 
 ## Implemented in this step
 

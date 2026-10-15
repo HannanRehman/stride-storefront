@@ -29,6 +29,17 @@ export function ProductDetail({ product }: { product: Product }) {
   const [size, setSize] = useState("");
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
+  const images = product.images?.length
+    ? product.images
+    : [
+        {
+          src: product.image,
+          alt: `${product.name}, ${product.color}`,
+          label: "Product",
+        },
+      ];
+  const selectedImage = images[imageIndex] ?? images[0];
   const sizeGrid = useRef<HTMLDivElement>(null);
   const saved = favorites.includes(product.id);
   async function add() {
@@ -55,12 +66,12 @@ export function ProductDetail({ product }: { product: Product }) {
         <Dialog>
           <DialogTrigger asChild>
             <button
-              className="gallery-main"
+              className={`gallery-main${product.preview ? " gallery-photo" : ""}`}
               aria-label={`Zoom ${product.name} image`}
             >
               <Image
-                src={product.image}
-                alt={`${product.name}, ${product.color}, original product concept`}
+                src={selectedImage.src}
+                alt={selectedImage.alt}
                 fill
                 preload
                 sizes="(max-width: 639px) 100vw, 58vw"
@@ -73,20 +84,47 @@ export function ProductDetail({ product }: { product: Product }) {
           <DialogContent className="lightbox-content">
             <DialogTitle>{product.name}</DialogTitle>
             <DialogDescription>
-              {product.color} · Original product concept
+              {product.color} ·{" "}
+              {product.preview
+                ? "Retouched product photograph"
+                : "Original product concept"}
             </DialogDescription>
             <div className="lightbox-image">
               <Image
-                src={product.image}
-                alt={`${product.name} enlarged`}
+                src={selectedImage.src}
+                alt={`${selectedImage.alt}, enlarged`}
                 fill
                 sizes="90vw"
               />
             </div>
           </DialogContent>
         </Dialog>
+        {images.length > 1 && (
+          <div
+            className="gallery-thumbnails"
+            role="group"
+            aria-label="Product photographs"
+          >
+            {images.map((photo, index) => (
+              <button
+                type="button"
+                key={photo.src}
+                aria-label={`View ${photo.label} photo`}
+                aria-pressed={index === imageIndex}
+                onClick={() => setImageIndex(index)}
+              >
+                <span className="gallery-thumbnail-image">
+                  <Image src={photo.src} alt="" fill sizes="100px" />
+                </span>
+                <span>{photo.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <p className="gallery-caption">
-          Original product concept. Imagery is illustrative.
+          {product.preview
+            ? "Actual product photo with AI-retouched background and lighting."
+            : "Original product concept. Imagery is illustrative."}
         </p>
       </div>
       <section className="product-info">
@@ -94,10 +132,10 @@ export function ProductDetail({ product }: { product: Product }) {
         <h1>{product.name}</h1>
         <p className="product-subtitle">{product.subtitle}</p>
         <div className="product-price">
-          <span>{money(product.price)}</span>
+          <span>{money(product.price, product.currency)}</span>
           {product.compareAt && (
             <>
-              <del>{money(product.compareAt)}</del>
+              <del>{money(product.compareAt, product.currency)}</del>
               <span className="sale">
                 {Math.round(
                   ((product.compareAt - product.price) / product.compareAt) *
@@ -108,6 +146,11 @@ export function ProductDetail({ product }: { product: Product }) {
             </>
           )}
         </div>
+        {product.preview && (
+          <p className="product-notice">
+            Temporary price for the complete set: one hoodie and one trouser.
+          </p>
+        )}
         <div className="color-choice">
           <p>Color shown: {product.color}</p>
           <div className="color-thumb">
@@ -120,26 +163,30 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
         </div>
         <div className="size-heading">
-          <span id="size-heading">Select size</span>
-          <Dialog>
-            <DialogTrigger asChild>
-              <button>Size guide</button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogTitle>Find your fit</DialogTitle>
-              <DialogDescription>
-                Measurement guidance for {product.subtitle.toLowerCase()}.
-              </DialogDescription>
-              <SizeGuide
-                category={product.category}
-                audience={product.audience}
-              />
-            </DialogContent>
-          </Dialog>
+          <span id="size-heading">
+            {product.preview ? "Planned sizes" : "Select size"}
+          </span>
+          {!product.preview && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <button>Size guide</button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogTitle>Find your fit</DialogTitle>
+                <DialogDescription>
+                  Measurement guidance for {product.subtitle.toLowerCase()}.
+                </DialogDescription>
+                <SizeGuide
+                  category={product.category}
+                  audience={product.audience}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
         <div
           ref={sizeGrid}
-          className="size-selector"
+          className={`size-selector${product.preview ? " size-preview" : ""}`}
           role="group"
           aria-labelledby="size-heading"
           aria-describedby={error ? "size-error" : undefined}
@@ -148,8 +195,8 @@ export function ProductDetail({ product }: { product: Product }) {
           {product.sizes.map((s) => (
             <button
               key={s.code}
-              disabled={!s.stock || adding}
-              aria-label={`${s.code}${!s.stock ? ", unavailable" : ""}`}
+              disabled={product.preview || !s.stock || adding}
+              aria-label={`${s.code}${product.preview ? ", stock to be confirmed" : !s.stock ? ", unavailable" : ""}`}
               aria-pressed={size === s.code}
               onClick={() => {
                 setSize(s.code);
@@ -169,22 +216,42 @@ export function ProductDetail({ product }: { product: Product }) {
         <div className="purchase-actions">
           <Button
             onClick={add}
-            disabled={!ready || saving || adding || Boolean(syncError)}
+            disabled={
+              product.preview ||
+              !ready ||
+              saving ||
+              adding ||
+              Boolean(syncError)
+            }
             aria-busy={adding}
           >
-            {adding ? "Adding…" : added ? "Add another" : "Add to bag"}
+            {product.preview
+              ? "Availability coming soon"
+              : adding
+                ? "Adding…"
+                : added
+                  ? "Add another"
+                  : "Add to bag"}
           </Button>
-          <Button
-            variant="outline"
-            aria-pressed={saved}
-            disabled={!ready || saving || Boolean(syncError)}
-            onClick={() => toggleFavorite(product.id)}
-          >
-            {saved ? "Saved to favorites" : "Favorite"}
-            <Heart size={18} fill={saved ? "currentColor" : "none"} />
-          </Button>
+          {!product.preview && (
+            <Button
+              variant="outline"
+              aria-pressed={saved}
+              disabled={!ready || saving || Boolean(syncError)}
+              onClick={() => toggleFavorite(product.id)}
+            >
+              {saved ? "Saved to favorites" : "Favorite"}
+              <Heart size={18} fill={saved ? "currentColor" : "none"} />
+            </Button>
+          )}
         </div>
-        {(!ready || saving || syncError) && (
+        {product.preview && (
+          <p className="product-notice">
+            Small, Medium, Large and Extra large. Stock quantities and fit
+            measurements are being confirmed.
+          </p>
+        )}
+        {!product.preview && (!ready || saving || syncError) && (
           <p className="product-notice" role="status">
             {syncError
               ? "Your bag could not sync. Use Retry syncing to reconnect."
@@ -200,19 +267,23 @@ export function ProductDetail({ product }: { product: Product }) {
         )}
         <p className="product-description">{product.description}</p>
         <p>
-          Style: ST-{String(product.rank + 1).padStart(4, "0")} ·{" "}
-          {product.color}
+          {product.preview
+            ? "Two-piece set"
+            : `Style: ST-${String(product.rank + 1).padStart(4, "0")}`}{" "}
+          · {product.color}
         </p>
         {[
           {
             title: "Product details",
-            content:
-              "This is an original Stride demo product concept. Color, materials and fit are illustrative. Availability shown here is sample catalog data; it does not represent stock from a live merchant.",
+            content: product.preview
+              ? "Includes one navy pullover hoodie and one matching trouser. Drawstring hood, ribbed cuffs and hem, drawstring trouser waistband, and white printed detailing. Price is provisional. Stock and exact fit measurements have not yet been confirmed."
+              : "This is an original Stride demo product concept. Color, materials and fit are illustrative. Availability shown here is sample catalog data; it does not represent stock from a live merchant.",
           },
           {
             title: "Material & care",
-            content:
-              product.category === "shoes"
+            content: product.preview
+              ? "Fabric composition and weight have not yet been confirmed. Follow the garment's own care label for washing and drying instructions."
+              : product.category === "shoes"
                 ? "Concept upper: textile or suede panels. Concept sole: rubber. For actual footwear, follow the care label, brush away dry dirt and avoid machine washing unless approved by the manufacturer."
                 : product.category === "clothing"
                   ? "Concept fabric: cotton blend. Always follow the final garment's care label. Wash with similar colors and avoid high heat where instructed."

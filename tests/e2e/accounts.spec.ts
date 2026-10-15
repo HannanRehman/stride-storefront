@@ -22,6 +22,7 @@ test("private pages require sign-in and callback errors stay local", async ({
 });
 test("auth rejects foreign origins and protected writes", async ({
   request,
+  baseURL,
 }) => {
   const foreign = await request.post("/api/auth/login", {
     headers: { Origin: "https://evil.example" },
@@ -29,7 +30,7 @@ test("auth rejects foreign origins and protected writes", async ({
   });
   expect([400, 503]).toContain(foreign.status());
   const anonymous = await request.post("/api/account/store", {
-    headers: { Origin: "http://127.0.0.1:3000" },
+    headers: { Origin: new URL(baseURL!).origin },
     data: { action: "read" },
   });
   expect(anonymous.status()).toBe(401);

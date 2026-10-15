@@ -32,6 +32,7 @@ const campaigns = [
 export default async function Home() {
   const products = await getCatalog();
   const featured = [
+    "navy-hoodie-trouser-set",
     "pace-01-men",
     "court-low-women",
     "motion-tee-men",

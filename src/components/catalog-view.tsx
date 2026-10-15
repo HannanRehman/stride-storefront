@@ -50,7 +50,7 @@ export function CatalogView({ title, products, constraints = {} }: Props) {
     },
     {
       key: "price",
-      title: "Shop by price",
+      title: "Shop by price (USD demos)",
       values: [
         ["0-50", "Under $50"],
         ["50-100", "$50–$100"],
@@ -213,6 +213,12 @@ export function CatalogView({ title, products, constraints = {} }: Props) {
           </label>
         </div>
       </div>
+      {base.some((product) => product.currency === "PKR") && (
+        <p className="product-notice">
+          The navy set is priced in PKR. Other demo prices are in USD. Price
+          filters apply to USD items; price sorting groups currencies.
+        </p>
+      )}
       <div className="catalog-chips">
         {[...new Set(base.map((p) => p.sport))].map((sport) => (
           <button

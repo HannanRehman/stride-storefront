@@ -335,6 +335,7 @@ export function StoreProvider({
     [ready, syncError, user],
   );
   function toggleFavorite(id: string) {
+    if (catalog.find((product) => product.id === id)?.preview) return;
     const saved = state.favorites.includes(id);
     save(
       {

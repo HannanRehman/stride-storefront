@@ -69,7 +69,7 @@ export function Footer() {
         <span>
           © {new Date().getFullYear()} Stride. Original demo storefront.
         </span>
-        <span>United States · USD</span>
+        <span>Prices shown per item · Demo storefront</span>
         <div>
           <Link href="/terms">Terms of use</Link>
           <Link href="/privacy">Privacy & cookies</Link>
