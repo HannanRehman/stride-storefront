@@ -12,7 +12,7 @@ export function ProductCard({
   product: Product;
   priority?: boolean;
 }) {
-  const { favorites, toggleFavorite } = useStore();
+  const { favorites, toggleFavorite, ready, saving, syncError } = useStore();
   const saved = favorites.includes(product.id);
   return (
     <article className="product-card">
@@ -33,6 +33,7 @@ export function ProductCard({
           className="product-favorite icon-button"
           aria-label={`${saved ? "Remove" : "Save"} ${product.name} ${saved ? "from" : "to"} favorites`}
           aria-pressed={saved}
+          disabled={!ready || saving || Boolean(syncError)}
           onClick={() => toggleFavorite(product.id)}
         >
           <Heart size={20} fill={saved ? "currentColor" : "none"} />

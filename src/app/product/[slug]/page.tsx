@@ -46,7 +46,7 @@ export default async function Page({
         <span>/</span>
         <span>{product.name}</span>
       </div>
-      <ProductDetail product={product} />
+      <ProductDetail key={product.id} product={product} />
       <Rail
         title="Make it your own"
         href={`/shop/all?audience=${product.audience}`}

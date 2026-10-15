@@ -77,3 +77,11 @@ Applied hosted migration: `20261014095017_customer_accounts.sql`. Real product d
 - No new packages were required. Private account/API responses are uncached, while the public storefront retains its existing catalog behavior.
 
 Signup and recovery code is present, but `AUTH_EMAIL_ENABLED` defaults to false. Real confirmation/recovery email delivery, valid email callback acceptance and recovery password update have not been exercised; those require sender and redirect setup and acceptance checks in `docs/AUTH_SETUP.md`. Vercel deployment activation is not claimed by these local checks.
+
+## Shopping feedback verification — October 15, 2026
+
+- Bag and favorite controls wait for shopping state to load and prevent overlapping saves. Account changes and success messages appear after the server confirms the save.
+- Loading, unavailable stock, expired sessions, browser storage failures and unconfirmed account saves have distinct feedback. Failed saves retain the last confirmed selections; Retry syncing reloads account selections before another attempt.
+- All 17 browser tests passed in Microsoft Edge: the 9 existing storefront checks and 8 new shopping-feedback checks covering delayed loading, delayed saves, failed saves and retry, expired sessions, server stock rejection, blocked browser storage, genuine guest stock limits, and failed account quantity changes.
+- Lint, TypeScript, all 10 unit tests and the production build passed.
+- Account feedback tests mock session and shopping responses. They do not claim fresh hosted authentication or database verification. No test emails were sent, and these local changes have not been deployed.

@@ -6,8 +6,17 @@ import { useStore } from "@/components/store-provider";
 import { Button } from "@/components/ui/button";
 import { money } from "@/lib/utils";
 export function BagView() {
-  const { bag, catalog, ready, updateQuantity, removeItem, moveToFavorites } =
-    useStore();
+  const {
+    bag,
+    catalog,
+    ready,
+    saving,
+    syncError,
+    user,
+    updateQuantity,
+    removeItem,
+    moveToFavorites,
+  } = useStore();
   const subtotal = bag.reduce(
     (sum, item) =>
       sum +
@@ -18,6 +27,11 @@ export function BagView() {
   return (
     <main id="main" className="bag-page section">
       <h1>Your bag</h1>
+      {saving && (
+        <p className="product-notice" role="status">
+          Saving your changes…
+        </p>
+      )}
       {!ready ? (
         <p role="status">Loading your bag…</p>
       ) : bag.length ? (
@@ -50,7 +64,9 @@ export function BagView() {
                       <div className="bag-quantity">
                         <button
                           aria-label={`Decrease ${p.name} quantity`}
-                          disabled={item.quantity === 1}
+                          disabled={
+                            item.quantity === 1 || saving || Boolean(syncError)
+                          }
                           onClick={() =>
                             updateQuantity(p.id, item.size, item.quantity - 1)
                           }
@@ -62,7 +78,11 @@ export function BagView() {
                         </span>
                         <button
                           aria-label={`Increase ${p.name} quantity`}
-                          disabled={item.quantity >= stock}
+                          disabled={
+                            item.quantity >= stock ||
+                            saving ||
+                            Boolean(syncError)
+                          }
                           onClick={() =>
                             updateQuantity(p.id, item.size, item.quantity + 1)
                           }
@@ -74,6 +94,7 @@ export function BagView() {
                         <button
                           className="icon-button"
                           aria-label={`Move ${p.name} to favorites`}
+                          disabled={saving || Boolean(syncError)}
                           onClick={() => moveToFavorites(p.id, item.size)}
                         >
                           <Heart size={19} />
@@ -81,6 +102,7 @@ export function BagView() {
                         <button
                           className="icon-button"
                           aria-label={`Remove ${p.name} from bag`}
+                          disabled={saving || Boolean(syncError)}
                           onClick={() => removeItem(p.id, item.size)}
                         >
                           <Trash2 size={18} />
@@ -107,9 +129,11 @@ export function BagView() {
               <span>{money(subtotal)}</span>
             </div>
             <p>
-              Your bag is saved on this device. This is a public demo
-              storefront; purchasing, payments, and shipping are not available
-              yet.
+              {user
+                ? "Your bag is saved to your account and syncs across devices."
+                : "Your bag is saved on this device."}{" "}
+              This is a public demo storefront; purchasing, payments, and
+              shipping are not available yet.
             </p>
             <Button asChild>
               <Link href="/shop/all">Continue exploring</Link>

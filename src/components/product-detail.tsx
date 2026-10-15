@@ -16,26 +16,38 @@ import { SizeGuide } from "@/components/size-guide";
 import { money } from "@/lib/utils";
 import type { Product } from "@/lib/catalog";
 export function ProductDetail({ product }: { product: Product }) {
-  const { favorites, toggleFavorite, addToBag, notice } = useStore();
+  const {
+    favorites,
+    toggleFavorite,
+    addToBag,
+    notice,
+    ready,
+    saving,
+    syncError,
+  } = useStore();
+  const [adding, setAdding] = useState(false);
   const [size, setSize] = useState("");
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
   const sizeGrid = useRef<HTMLDivElement>(null);
   const saved = favorites.includes(product.id);
-  function add() {
+  async function add() {
+    if (adding) return;
+    setAdded(false);
     if (!size) {
       setError("Choose an available size before adding to your bag.");
       sizeGrid.current?.focus();
       return;
     }
-    const ok = addToBag(product.id, size);
-    if (ok) {
-      setAdded(true);
-      setError("");
-    } else
-      setError(
-        "Your bag already contains the available quantity for this size.",
-      );
+    setError("");
+    setAdding(true);
+    try {
+      const result = await addToBag(product.id, size);
+      if (result.ok) setAdded(true);
+      else setError(result.message);
+    } finally {
+      setAdding(false);
+    }
   }
   return (
     <div className="product-detail section">
@@ -136,7 +148,7 @@ export function ProductDetail({ product }: { product: Product }) {
           {product.sizes.map((s) => (
             <button
               key={s.code}
-              disabled={!s.stock}
+              disabled={!s.stock || adding}
               aria-label={`${s.code}${!s.stock ? ", unavailable" : ""}`}
               aria-pressed={size === s.code}
               onClick={() => {
@@ -155,16 +167,32 @@ export function ProductDetail({ product }: { product: Product }) {
           </p>
         )}
         <div className="purchase-actions">
-          <Button onClick={add}>{added ? "Add another" : "Add to bag"}</Button>
+          <Button
+            onClick={add}
+            disabled={!ready || saving || adding || Boolean(syncError)}
+            aria-busy={adding}
+          >
+            {adding ? "Adding…" : added ? "Add another" : "Add to bag"}
+          </Button>
           <Button
             variant="outline"
             aria-pressed={saved}
+            disabled={!ready || saving || Boolean(syncError)}
             onClick={() => toggleFavorite(product.id)}
           >
             {saved ? "Saved to favorites" : "Favorite"}
             <Heart size={18} fill={saved ? "currentColor" : "none"} />
           </Button>
         </div>
+        {(!ready || saving || syncError) && (
+          <p className="product-notice" role="status">
+            {syncError
+              ? "Your bag could not sync. Use Retry syncing to reconnect."
+              : !ready
+                ? "Loading your bag…"
+                : "Saving your changes…"}
+          </p>
+        )}
         {added && (
           <p className="product-notice" role="status">
             Added to your bag. <Link href="/cart">View bag</Link>

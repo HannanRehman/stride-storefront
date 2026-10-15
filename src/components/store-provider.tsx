@@ -12,6 +12,20 @@ import {
 import type { Product } from "@/lib/catalog";
 type BagItem = { productId: string; size: string; quantity: number };
 type Stored = { favorites: string[]; bag: BagItem[] };
+type ShoppingResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason:
+        | "loading"
+        | "busy"
+        | "unavailable"
+        | "stock_limit"
+        | "storage"
+        | "save_failed"
+        | "session";
+      message: string;
+    };
 const KEY = "stride-store-v1";
 const EMPTY = '{"favorites":[],"bag":[]}';
 function read() {
@@ -33,8 +47,10 @@ type Store = Stored & {
   user: { id: string; email: string } | null;
   catalog: Product[];
   ready: boolean;
+  saving: boolean;
+  syncError: string;
   toggleFavorite: (id: string) => void;
-  addToBag: (id: string, size: string) => boolean;
+  addToBag: (id: string, size: string) => Promise<ShoppingResult>;
   updateQuantity: (id: string, size: string, quantity: number) => void;
   removeItem: (id: string, size: string) => void;
   moveToFavorites: (id: string, size: string) => void;
@@ -59,10 +75,11 @@ export function StoreProvider({
   const [account, setAccount] = useState<Stored | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [syncError, setSyncError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const generation = useRef(0);
   const userId = useRef<string | null>(null);
   const queue = useRef<Promise<void>>(Promise.resolve());
-  const pending = useRef(0);
   const refresh = useRef<() => void>(() => {});
   useEffect(() => {
     let mounted = true;
@@ -219,66 +236,101 @@ export function StoreProvider({
       message: string,
       action: string,
       payload: Record<string, unknown>,
-    ) => {
+    ): Promise<ShoppingResult> => {
       if (!ready || syncError) {
-        setNotice("Wait for your account to sync, or retry the connection.");
-        return false;
+        const message = syncError
+          ? "Your bag could not sync. Use Retry syncing before making changes."
+          : "Your bag is still loading. Please wait before making changes.";
+        setNotice(message);
+        return Promise.resolve({
+          ok: false,
+          reason: syncError ? "save_failed" : "loading",
+          message,
+        });
       }
-      if (user) {
-        const identity = user.id;
-        const version = generation.current;
-        setAccount(next);
-        ++pending.current;
-        queue.current = queue.current.then(async () => {
-          if (identity !== userId.current || version !== generation.current) {
-            --pending.current;
-            return;
-          }
-          try {
+      if (savingRef.current) {
+        return Promise.resolve({
+          ok: false,
+          reason: "busy",
+          message: "Your previous change is still saving. Please wait.",
+        });
+      }
+      savingRef.current = true;
+      setSaving(true);
+      setNotice("");
+      const identity = user?.id ?? null;
+      const version = generation.current;
+      const operation = (async (): Promise<ShoppingResult> => {
+        try {
+          if (identity) {
             const response = await fetch("/api/account/store", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ action, payload }),
             });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
+            if (!response.ok) {
+              if (data.code === "stock_limit" || data.code === "unavailable") {
+                const message =
+                  data.code === "stock_limit"
+                    ? "That size or quantity is no longer available. Refresh your bag or choose another size."
+                    : "This product is no longer available.";
+                setNotice(message);
+                return { ok: false, reason: data.code, message };
+              }
+              if (response.status === 401) {
+                const message =
+                  "Your session has expired. Sign in again before saving your selections.";
+                setSyncError(message);
+                setNotice(message);
+                return { ok: false, reason: "session", message };
+              }
+              throw new Error("Account save failed");
+            }
+            if (identity !== userId.current || version !== generation.current) {
+              return {
+                ok: false,
+                reason: "session",
+                message:
+                  "Your account changed before this save completed. Reload your bag to check your selections.",
+              };
+            }
+            if (!Array.isArray(data?.bag) || !Array.isArray(data?.favorites))
+              throw new Error("Invalid saved selections");
+            setAccount(data);
             try {
               localStorage.setItem("stride-account-event", crypto.randomUUID());
             } catch {
               /* Cross-tab sync is best effort. */
             }
-            if (
-              identity === userId.current &&
-              version === generation.current &&
-              pending.current === 1
-            ) {
-              setAccount(data);
-              setNotice(message);
-            }
-          } catch {
-            if (identity === userId.current && version === generation.current) {
-              setSyncError(
-                "Your last shopping change could not be saved. Retry to reload your account’s saved selections.",
-              );
-              setNotice("Could not save this change to your account.");
-            }
-          } finally {
-            --pending.current;
+          } else {
+            localStorage.setItem(KEY, JSON.stringify(next));
+            window.dispatchEvent(new Event("stride-store"));
           }
-        });
-        return true;
-      }
-      try {
-        localStorage.setItem(KEY, JSON.stringify(next));
-        window.dispatchEvent(new Event("stride-store"));
-        setNotice(message);
-        return true;
-      } catch {
-        setNotice(
-          "Your browser could not save changes. Allow local storage and try again.",
-        );
-        return false;
-      }
+          setNotice(message);
+          return { ok: true };
+        } catch {
+          const failureMessage = identity
+            ? "Could not confirm this change was saved. Use Retry syncing to reload your saved selections before trying again."
+            : "Your browser could not save changes. Allow local storage and try again.";
+          if (identity) {
+            if (identity === userId.current && version === generation.current) {
+              setSyncError(failureMessage);
+            }
+          }
+          setNotice(failureMessage);
+          return {
+            ok: false,
+            reason: identity ? "save_failed" : "storage",
+            message: failureMessage,
+          };
+        } finally {
+          savingRef.current = false;
+          setSaving(false);
+        }
+      })();
+      queue.current = operation.then(() => {});
+      return operation;
     },
     [ready, syncError, user],
   );
@@ -296,16 +348,39 @@ export function StoreProvider({
       { productId: id },
     );
   }
-  function addToBag(id: string, size: string) {
+  async function addToBag(id: string, size: string): Promise<ShoppingResult> {
+    if (!ready || syncError)
+      return {
+        ok: false,
+        reason: syncError ? "save_failed" : "loading",
+        message: syncError
+          ? "Your bag could not sync. Use Retry syncing before adding an item."
+          : "Your bag is still loading. Please wait before adding an item.",
+      };
+    if (savingRef.current)
+      return {
+        ok: false,
+        reason: "busy",
+        message: "Your previous change is still saving. Please wait.",
+      };
     const product = catalog.find((p) => p.id === id);
     const stock = product?.sizes.find((s) => s.code === size)?.stock ?? 0;
     const existing = state.bag.find(
       (i) => i.productId === id && i.size === size,
     );
-    if (stock <= (existing?.quantity ?? 0)) {
-      setNotice("This size has reached its available quantity.");
-      return false;
-    }
+    if (!product || stock < 1)
+      return {
+        ok: false,
+        reason: "unavailable",
+        message: "This size is unavailable. Choose another available size.",
+      };
+    if (stock <= (existing?.quantity ?? 0))
+      return {
+        ok: false,
+        reason: "stock_limit",
+        message:
+          "Your bag already contains the available quantity for this size.",
+      };
     const bag = existing
       ? state.bag.map((i) =>
           i === existing ? { ...i, quantity: i.quantity + 1 } : i,
@@ -366,6 +441,8 @@ export function StoreProvider({
         user,
         catalog,
         ready,
+        saving,
+        syncError,
         toggleFavorite,
         addToBag,
         updateQuantity,

@@ -1,5 +1,18 @@
 # Stride public storefront
 
+## Documentation
+
+All project documentation and plans live in this folder. Commands and code paths in these documents are relative to the repository root unless stated otherwise. Tool instruction files and installed skills stay in their required locations.
+
+- [Implementation roadmap](./IMPLEMENTATION_PLAN.md)
+- [Original master specification](./NIKE_INSPIRED_CODEX_MASTER_SPEC.md)
+- [Admin panel and CMS plan](./ADMIN_CMS_PLAN.md)
+- [Storefront design](./PUBLIC_STOREFRONT_DESIGN.md)
+- [Account implementation](./ACCOUNT_IMPLEMENTATION.md) and [auth setup](./AUTH_SETUP.md)
+- [Website improvement audit](./WEBSITE_IMPROVEMENT_AUDIT.md)
+- [Validation results](./VALIDATION.md)
+- [Asset credits](./ASSET_CREDITS.md) and [brand name ideas](./BRAND_NAME_IDEAS.md)
+
 A responsive original sportswear storefront built with Next.js App Router, TypeScript, Tailwind CSS, Lucide, and shadcn-style Button/Dialog primitives backed by Radix. The theme uses clean black/white surfaces, strong type, editorial photography, and borderless product cards. [Lenis](https://github.com/darkroomengineering/lenis) smooths mouse-wheel and anchor scrolling. Touch remains native; reduced-motion preferences disable smoothing, and dialogs pause background scrolling.
 
 ## Run locally
@@ -37,7 +50,7 @@ The public storefront and account milestone are implemented. Accounts include em
 
 Product pages currently have one original concept image and one colorway each, rather than full multi-view/variant galleries. Category-specific technical facets, ratings/review submission, real member benefits, and final product fit charts belong to later milestones. No fictional customer reviews are displayed. The catalog is bounded to 200 published entries in the current Supabase read adapter; larger/live catalogs need database-side query pagination.
 
-The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) is the broader roadmap, and [docs/PUBLIC_STOREFRONT_DESIGN.md](./docs/PUBLIC_STOREFRONT_DESIGN.md) records the initial storefront design. Supabase PostgreSQL and Supabase Auth replace the provisional Prisma/Better Auth choice. See [docs/ACCOUNT_IMPLEMENTATION.md](./docs/ACCOUNT_IMPLEMENTATION.md) for account architecture and [docs/AUTH_SETUP.md](./docs/AUTH_SETUP.md) for deployment activation.
+The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) is the broader roadmap, and [docs/PUBLIC_STOREFRONT_DESIGN.md](./PUBLIC_STOREFRONT_DESIGN.md) records the initial storefront design. Supabase PostgreSQL and Supabase Auth replace the provisional Prisma/Better Auth choice. See [docs/ACCOUNT_IMPLEMENTATION.md](./ACCOUNT_IMPLEMENTATION.md) for account architecture and [docs/AUTH_SETUP.md](./AUTH_SETUP.md) for deployment activation.
 
 ## Accounts
 
@@ -107,13 +120,13 @@ $env:PLAYWRIGHT_CHANNEL = 'msedge'
 npm.cmd run test:e2e
 ```
 
-Playwright starts the local dev server if needed. Tests use a fresh browser context, not your normal browser's stored bag. See [docs/VALIDATION.md](./docs/VALIDATION.md) for the completed checks and limitations.
+Playwright starts the local dev server if needed. Tests use a fresh browser context, not your normal browser's stored bag. See [docs/VALIDATION.md](./VALIDATION.md) for the completed checks and limitations.
 
 Production dependencies passed `npm audit --omit=dev` at implementation time. The full audit reported five linked high-severity entries in the lint-only `eslint-config-next → fast-glob → micromatch → braces` chain. The latest published braces version had no patched release at that check; do not force an unrelated Next.js downgrade to silence the report. Recheck development dependency updates before using lint tooling on untrusted patterns.
 
 ## Images and fonts
 
-Images were generated through the built-in imagegen tool without reference images. Their saved paths and exact prompts are documented in [docs/ASSET_CREDITS.md](./docs/ASSET_CREDITS.md); machine-readable dimensions/provenance are in [docs/assets.json](./docs/assets.json). No Nike photos, logos, slogans, font files or source code are included.
+Images were generated through the built-in imagegen tool without reference images. Their saved paths and exact prompts are documented in [docs/ASSET_CREDITS.md](./ASSET_CREDITS.md); machine-readable dimensions/provenance are in [docs/assets.json](./assets.json). No Nike photos, logos, slogans, font files or source code are included.
 
 DM Sans and Barlow Condensed are locally served through Fontsource under the SIL Open Font License. Their licenses are included in the installed packages. The standalone lettermark and missing-image illustration are original SVG code.
 

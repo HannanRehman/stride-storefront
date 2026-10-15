@@ -176,9 +176,12 @@ tests/
   unit/
   integration/
   e2e/
-docs/                         # Asset credits and validation evidence
+docs/                         # All project documentation, specifications and plans
+  README.md
+  IMPLEMENTATION_PLAN.md
+  NIKE_INSPIRED_CODEX_MASTER_SPEC.md
+  ADMIN_CMS_PLAN.md
 .env.example
-README.md
 ```
 
 Keep client components focused on interaction. Database access, authorization, inventory checks, and final monetary calculations remain server-side. Avoid separate hardcoded product arrays for the homepage, listing, search, and PDP.
