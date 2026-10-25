@@ -5,6 +5,7 @@ import { Heart, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useStore } from "@/components/store-provider";
 import { Button } from "@/components/ui/button";
 import { money } from "@/lib/utils";
+import { bagTotals } from "@/lib/bag-totals";
 export function BagView() {
   const {
     bag,
@@ -17,13 +18,7 @@ export function BagView() {
     removeItem,
     moveToFavorites,
   } = useStore();
-  const subtotal = bag.reduce(
-    (sum, item) =>
-      sum +
-      (catalog.find((p) => p.id === item.productId)?.price || 0) *
-        item.quantity,
-    0,
-  );
+  const totals = bagTotals(bag, catalog);
   return (
     <main id="main" className="bag-page section">
       <h1>Your bag</h1>
@@ -55,7 +50,7 @@ export function BagView() {
                       <h2>
                         <Link href={`/product/${p.slug}`}>{p.name}</Link>
                       </h2>
-                      <span>{money(p.price * item.quantity)}</span>
+                      <span>{money(p.price * item.quantity, p.currency)}</span>
                     </div>
                     <p>{p.subtitle}</p>
                     <p>{p.color}</p>
@@ -118,7 +113,13 @@ export function BagView() {
             <h2>Summary</h2>
             <div>
               <span>Subtotal</span>
-              <span>{money(subtotal)}</span>
+              <span>
+                {totals.map(([currency, subtotal]) => (
+                  <span className="bag-currency-total" key={currency}>
+                    {money(subtotal, currency)}
+                  </span>
+                ))}
+              </span>
             </div>
             <div>
               <span>Shipping</span>
@@ -126,8 +127,20 @@ export function BagView() {
             </div>
             <div className="bag-total">
               <span>Bag subtotal</span>
-              <span>{money(subtotal)}</span>
+              <span>
+                {totals.map(([currency, subtotal]) => (
+                  <span className="bag-currency-total" key={currency}>
+                    {money(subtotal, currency)}
+                  </span>
+                ))}
+              </span>
             </div>
+            {totals.length > 1 && (
+              <p>
+                Totals are shown separately for each currency. No currency
+                conversion is applied.
+              </p>
+            )}
             <p>
               {user
                 ? "Your bag is saved to your account and syncs across devices."

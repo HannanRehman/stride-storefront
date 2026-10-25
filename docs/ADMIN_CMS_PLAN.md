@@ -1,6 +1,6 @@
 # Owner admin panel and homepage CMS
 
-Status: planned, not implemented. Decisions agreed October 15, 2026.
+Status: product-management implementation prepared locally on October 26, 2026. Hosted migrations, storage policies and both confirmed owner memberships are activated with approval; browser acceptance against real owner sessions and deployment remain pending. Homepage CMS is deferred at the owner's current request to focus on other work. Original decisions agreed October 15, 2026; see [owner dashboard setup](./OWNER_DASHBOARD_SETUP.md) for the current milestone.
 
 ## Goal and scope
 
@@ -18,7 +18,7 @@ The first version includes product management, image uploads, homepage draft/pre
 ## Owner access
 
 - Reuse login and preserve the intended admin destination after authentication.
-- Assign one owner through a protected database membership record linked to their Supabase user ID. Document manual bootstrap after confirming the owner's account.
+- Assign the two designated owners through protected database membership records linked to their Supabase user IDs, as requested October 26. Document manual bootstrap after confirming both accounts. No staff permission hierarchy in this milestone.
 - Public signup and editable profile metadata cannot grant admin access. No in-app membership management in this version.
 - Check owner permission on every admin page, API, database write and storage upload. Redirect anonymous visitors to login and deny ordinary customers.
 - Use session-aware Supabase clients and RLS; never expose privileged credentials to the browser.

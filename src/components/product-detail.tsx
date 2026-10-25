@@ -42,6 +42,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const selectedImage = images[imageIndex] ?? images[0];
   const sizeGrid = useRef<HTMLDivElement>(null);
   const saved = favorites.includes(product.id);
+  const photographed = product.preview || Boolean(product.images?.length);
   async function add() {
     if (adding) return;
     setAdded(false);
@@ -66,7 +67,7 @@ export function ProductDetail({ product }: { product: Product }) {
         <Dialog>
           <DialogTrigger asChild>
             <button
-              className={`gallery-main${product.preview ? " gallery-photo" : ""}`}
+              className={`gallery-main${photographed ? " gallery-photo" : ""}`}
               aria-label={`Zoom ${product.name} image`}
             >
               <Image
@@ -87,7 +88,9 @@ export function ProductDetail({ product }: { product: Product }) {
               {product.color} ·{" "}
               {product.preview
                 ? "Retouched product photograph"
-                : "Original product concept"}
+                : photographed
+                  ? "Product photograph"
+                  : "Original product concept"}
             </DialogDescription>
             <div className="lightbox-image">
               <Image
@@ -124,7 +127,9 @@ export function ProductDetail({ product }: { product: Product }) {
         <p className="gallery-caption">
           {product.preview
             ? "Actual product photo with AI-retouched background and lighting."
-            : "Original product concept. Imagery is illustrative."}
+            : photographed
+              ? "Product photographs."
+              : "Original product concept. Imagery is illustrative."}
         </p>
       </div>
       <section className="product-info">
@@ -267,8 +272,10 @@ export function ProductDetail({ product }: { product: Product }) {
         )}
         <p className="product-description">{product.description}</p>
         <p>
-          {product.preview
-            ? "Two-piece set"
+          {photographed
+            ? product.preview
+              ? "Two-piece set"
+              : `Product: ${product.slug}`
             : `Style: ST-${String(product.rank + 1).padStart(4, "0")}`}{" "}
           · {product.color}
         </p>
@@ -277,17 +284,21 @@ export function ProductDetail({ product }: { product: Product }) {
             title: "Product details",
             content: product.preview
               ? "Includes one navy pullover hoodie and one matching trouser. Drawstring hood, ribbed cuffs and hem, drawstring trouser waistband, and white printed detailing. Price is provisional. Stock and exact fit measurements have not yet been confirmed."
-              : "This is an original Stride demo product concept. Color, materials and fit are illustrative. Availability shown here is sample catalog data; it does not represent stock from a live merchant.",
+              : photographed
+                ? product.description
+                : "This is an original Stride demo product concept. Color, materials and fit are illustrative. Availability shown here is sample catalog data; it does not represent stock from a live merchant.",
           },
           {
             title: "Material & care",
             content: product.preview
               ? "Fabric composition and weight have not yet been confirmed. Follow the garment's own care label for washing and drying instructions."
-              : product.category === "shoes"
-                ? "Concept upper: textile or suede panels. Concept sole: rubber. For actual footwear, follow the care label, brush away dry dirt and avoid machine washing unless approved by the manufacturer."
-                : product.category === "clothing"
-                  ? "Concept fabric: cotton blend. Always follow the final garment's care label. Wash with similar colors and avoid high heat where instructed."
-                  : "Concept fabric: woven nylon. Follow the final care instructions. Spot-clean gently and air-dry.",
+              : photographed
+                ? "Follow the garment's own label for fabric composition, washing and drying instructions."
+                : product.category === "shoes"
+                  ? "Concept upper: textile or suede panels. Concept sole: rubber. For actual footwear, follow the care label, brush away dry dirt and avoid machine washing unless approved by the manufacturer."
+                  : product.category === "clothing"
+                    ? "Concept fabric: cotton blend. Always follow the final garment's care label. Wash with similar colors and avoid high heat where instructed."
+                    : "Concept fabric: woven nylon. Follow the final care instructions. Spot-clean gently and air-dry.",
           },
           {
             title: "Shipping & returns",

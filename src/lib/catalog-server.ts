@@ -3,6 +3,7 @@ import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { products, type Product } from "@/lib/catalog";
 import { withProductPreviews } from "@/lib/product-previews";
+import { recordToProduct, type ProductRecord } from "@/lib/admin-products";
 
 // Public, read-only catalog. No service-role key is needed or accepted here.
 export const getCatalog = cache(async (): Promise<Product[]> => {
@@ -16,36 +17,25 @@ export const getCatalog = cache(async (): Promise<Product[]> => {
   const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data, error } = await client
-    .from("catalog_products")
-    .select(
-      "id, slug, name, subtitle, audience, category, sport, collection, price_minor, compare_at_minor, image, color, color_hex, badge, sizes, description, featured_rank, published_at",
-    )
-    .eq("published", true)
-    .order("featured_rank")
-    .limit(200);
-  if (error)
-    throw new Error(`Unable to read the configured catalog: ${error.message}`);
-  return withProductPreviews(
-    (data ?? []).map((row) => ({
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      subtitle: row.subtitle,
-      audience: row.audience,
-      category: row.category,
-      sport: row.sport,
-      collection: row.collection,
-      price: row.price_minor,
-      compareAt: row.compare_at_minor ?? undefined,
-      image: row.image,
-      color: row.color,
-      colorHex: row.color_hex,
-      badge: row.badge ?? undefined,
-      sizes: row.sizes,
-      description: row.description,
-      rank: row.featured_rank,
-      published: row.published_at,
-    })),
-  );
+  const catalog: Product[] = [];
+  for (let offset = 0; ; offset += 200) {
+    // Select existing columns as well as optional migration fields, so the
+    // storefront still works while owner-dashboard activation is pending.
+    const { data, error } = await client
+      .from("catalog_products")
+      .select("*")
+      .eq("published", true)
+      .order("featured_rank")
+      .order("id")
+      .range(offset, offset + 199);
+    if (error)
+      throw new Error(
+        `Unable to read the configured catalog: ${error.message}`,
+      );
+    catalog.push(
+      ...(data ?? []).map((row) => recordToProduct(row as ProductRecord)),
+    );
+    if ((data?.length ?? 0) < 200) break;
+  }
+  return withProductPreviews(catalog);
 });

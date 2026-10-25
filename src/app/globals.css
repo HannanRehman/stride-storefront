@@ -11,6 +11,10 @@
   --font-display: "Barlow Condensed", Impact, sans-serif;
   --font-body: "DM Sans", Arial, sans-serif;
 }
+.bag-currency-total {
+  display: block;
+  text-align: right;
+}
 * {
   box-sizing: border-box;
 }

@@ -1,5 +1,7 @@
 # Nike-Inspired Storefront Implementation Plan
 
+October 26 update: owner product-management code is implemented locally; Supabase owner/catalog/storage migrations are applied with approval and both confirmed owners are activated. Homepage CMS is deferred. Checkout, payments and orders remain pending. See [owner dashboard setup](./OWNER_DASHBOARD_SETUP.md) for current activation and verification status; code has not been pushed for this milestone.
+
 **Prepared:** October 14, 2026  
 **Source of requirements:** [NIKE_INSPIRED_CODEX_MASTER_SPEC.md](./NIKE_INSPIRED_CODEX_MASTER_SPEC.md)  
 **Current status:** Public storefront and account implementation built with Supabase. Customer signup/recovery activation requires configured email delivery. Real products, variants, inventory and checkout are deferred. See `README.md` and `docs/ACCOUNT_IMPLEMENTATION.md`.  

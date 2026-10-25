@@ -45,9 +45,14 @@ export const productPreviews: Product[] = [
 ];
 
 export function withProductPreviews(catalog: Product[]): Product[] {
-  const ids = new Set(productPreviews.map((product) => product.id));
   return [
-    ...productPreviews,
-    ...catalog.filter((product) => !ids.has(product.id)),
+    ...productPreviews.filter(
+      (preview) =>
+        !catalog.some(
+          (product) =>
+            product.id === preview.id || product.slug === preview.slug,
+        ),
+    ),
+    ...catalog,
   ];
 }

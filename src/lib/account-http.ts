@@ -6,7 +6,7 @@ export function json(data: unknown, status = 200) {
     headers: { "Cache-Control": "private, no-store", Vary: "Cookie" },
   });
 }
-export async function body(request: Request) {
+export function assertSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   const requestUrl = new URL(request.url);
   const expected = `${requestUrl.protocol}//${request.headers.get("host") || requestUrl.host}`;
@@ -16,6 +16,9 @@ export async function body(request: Request) {
     request.headers.get("sec-fetch-site") === "cross-site"
   )
     throw new Error("Request origin is not allowed.");
+}
+export async function body(request: Request) {
+  assertSameOrigin(request);
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     throw new Error("Send a JSON request.");
   const raw = await request.text();

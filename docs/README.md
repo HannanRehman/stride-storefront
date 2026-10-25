@@ -7,6 +7,7 @@ All project documentation and plans live in this folder. Commands and code paths
 - [Implementation roadmap](./IMPLEMENTATION_PLAN.md)
 - [Original master specification](./NIKE_INSPIRED_CODEX_MASTER_SPEC.md)
 - [Admin panel and CMS plan](./ADMIN_CMS_PLAN.md)
+- [Owner dashboard setup](./OWNER_DASHBOARD_SETUP.md)
 - [Navy product listing draft](./NAVY_PRODUCT_DRAFT.md)
 - [Storefront design](./PUBLIC_STOREFRONT_DESIGN.md)
 - [Account implementation](./ACCOUNT_IMPLEMENTATION.md) and [auth setup](./AUTH_SETUP.md)
@@ -37,6 +38,8 @@ The homepage, clothing catalog and search now include a navy hoodie-and-trouser 
 
 ## Implemented in this step
 
+The local `/admin` dashboard now manages product drafts, photos, prices and size-level stock. Hosted owner migrations and both confirmed owner memberships are activated; deployment remains pending. Homepage CMS is deferred. See [owner dashboard setup](./OWNER_DASHBOARD_SETUP.md) for current status and acceptance checks.
+
 - Original Stride identity, copy, and eight generated campaign/product assets, hosted locally.
 - Homepage: campaign, editorial panels, featured product rail, categories, classic collections, sports, story, category matrix and footer.
 - Men/women/kids landings and category pages; collection and new-arrival pages.
@@ -54,7 +57,7 @@ The homepage, clothing catalog and search now include a navy hoodie-and-trouser 
 
 The public storefront and account milestone are implemented. Accounts include email/password sign-in, conditional signup/recovery, protected profile and saved addresses, account bag/favorites and repeatable guest merging. Purchasing, payment, checkout, order history, real inventory reservation and shipping are not enabled. The UI does not claim to accept orders. No card data is collected. Real products, photography, variants and inventory are deferred until the assortment is supplied.
 
-Product pages currently have one original concept image and one colorway each, rather than full multi-view/variant galleries. Category-specific technical facets, ratings/review submission, real member benefits, and final product fit charts belong to later milestones. No fictional customer reviews are displayed. The catalog is bounded to 200 published entries in the current Supabase read adapter; larger/live catalogs need database-side query pagination.
+Product pages currently have one original concept image and one colorway each, rather than full multi-view/variant galleries. Category-specific technical facets, ratings/review submission, real member benefits, and final product fit charts belong to later milestones. No fictional customer reviews are displayed. The public Supabase adapter reads published products in stable batches; the owner list uses database-side pagination.
 
 The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) is the broader roadmap, and [docs/PUBLIC_STOREFRONT_DESIGN.md](./PUBLIC_STOREFRONT_DESIGN.md) records the initial storefront design. Supabase PostgreSQL and Supabase Auth replace the provisional Prisma/Better Auth choice. See [docs/ACCOUNT_IMPLEMENTATION.md](./ACCOUNT_IMPLEMENTATION.md) for account architecture and [docs/AUTH_SETUP.md](./AUTH_SETUP.md) for deployment activation.
 
@@ -86,7 +89,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 4. Restart the dev server. Confirm the 36 published entries appear.
 
-Only published rows are readable by `anon`/`authenticated`. Those roles have no catalog write privileges. Never place a service-role key in a public variable. When configuration is absent the app uses its local catalog; when configuration is present but broken it reports a load error instead of silently substituting local data. The catalog's JSON sizing/quantity data is presentation data, not a transaction-safe stock ledger. A later commerce migration must normalize variant inventory, authorize private records and implement checkout transactions separately.
+Anonymous visitors and ordinary customers can read only published catalog rows. Protected owner membership permits draft reads and catalog insert/update; public application clients cannot assign owner membership. Never place a service-role key in a public variable. When configuration is absent the app uses its local catalog; when configuration is present but broken it reports a load error instead of silently substituting local data. The catalog's JSON sizing/quantity data is presentation data, not a transaction-safe stock ledger. A later commerce migration must normalize variant inventory, authorize private records and implement checkout transactions separately.
 
 Catalog reads are deduplicated within a render, with a 60-second page revalidation interval. Set `NEXT_PUBLIC_SITE_URL` to the actual hostname when deploying so canonical URLs and the sitemap are accurate. Database availability is needed during a build when the Supabase adapter is configured.
 
@@ -96,7 +99,7 @@ To regenerate the seed after changing `src/lib/catalog.ts`:
 npx.cmd tsx scripts/generate-supabase-seed.ts
 ```
 
-Hosted migration, seed import and public Data API access have been verified. A transaction that temporarily inserted an unpublished probe confirmed that anonymous users cannot read unpublished products, then rolled back the probe. Both `anon` and `authenticated` have SELECT privileges only. Supabase's security advisor returned no findings.
+Hosted migration, seed import and public Data API access have been verified. A transaction that temporarily inserted an unpublished probe confirmed that anonymous users cannot read unpublished products, then rolled back the probe. At the original catalog milestone both client roles had SELECT privileges only; owner policies were added in the later product-management milestone. Supabase's security advisor returned no findings.
 
 The local `.env.local` is configured for the connected project and is excluded from Git. To connect the Vercel deployment, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` using the corresponding local values, select Production, and redeploy. Keep `NEXT_PUBLIC_SITE_URL=https://stride-storefront-peach.vercel.app` for the deployed site. Only a publishable key is required.
 

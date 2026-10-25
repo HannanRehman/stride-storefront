@@ -7,7 +7,8 @@ export function safeNext(value: unknown) {
     /[\u0000-\u001f]/.test(value)
   )
     return "/account";
-  return value.startsWith("/account") ||
+  return /^\/admin(?:\/[^?#]*)?(?:\?[^#]*)?$/.test(value) ||
+    value.startsWith("/account") ||
     value === "/cart" ||
     value === "/favorites" ||
     value === "/reset-password"

@@ -17,7 +17,7 @@ export function ProductCard({
   return (
     <article className="product-card">
       <div
-        className={`product-card-media${product.preview ? " product-photo" : ""}`}
+        className={`product-card-media${product.preview || product.images?.length ? " product-photo" : ""}`}
       >
         <Link
           href={`/product/${product.slug}`}

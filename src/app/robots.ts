@@ -9,6 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         "/favorites",
         "/search",
         "/account",
+        "/admin",
         "/login",
         "/register",
         "/forgot-password",

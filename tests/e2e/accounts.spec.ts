@@ -10,7 +10,9 @@ test("private pages require sign-in and callback errors stay local", async ({
   ).toBeVisible();
   await page.goto("/auth/callback?code=invalid&next=https://evil.example");
   await expect(page).toHaveURL(/\/login\?callbackError=1/);
-  await expect(page.getByRole("alert")).toContainText("could not be verified");
+  await expect(page.locator("main [role=alert]")).toContainText(
+    "could not be verified",
+  );
   await page.goto("/reset-password");
   await expect(page).toHaveURL(/\/forgot-password/);
   const results = await new AxeBuilder({ page }).analyze();

@@ -26,7 +26,11 @@ export async function proxy(request: NextRequest) {
     },
   });
   const { data } = await client.auth.getClaims();
-  if (!data?.claims && request.nextUrl.pathname.startsWith("/account")) {
+  if (
+    !data?.claims &&
+    (request.nextUrl.pathname.startsWith("/account") ||
+      request.nextUrl.pathname.startsWith("/admin"))
+  ) {
     const target = new URL("/login", request.url);
     target.searchParams.set("next", request.nextUrl.pathname);
     const redirect = NextResponse.redirect(target);
@@ -39,6 +43,8 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/account/:path*",
+    "/admin/:path*",
+    "/api/admin/:path*",
     "/api/account/:path*",
     "/api/auth/:path*",
     "/auth/:path*",
