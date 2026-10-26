@@ -55,6 +55,9 @@ export function BagView() {
                     <p>{p.subtitle}</p>
                     <p>{p.color}</p>
                     <p>Size: {item.size}</p>
+                    {!p.orderable && (
+                      <p>Browsing item · unavailable for checkout</p>
+                    )}
                     <div className="bag-line-bottom">
                       <div className="bag-quantity">
                         <button
@@ -123,7 +126,7 @@ export function BagView() {
             </div>
             <div>
               <span>Shipping</span>
-              <span>Not available</span>
+              <span>Calculated at checkout</span>
             </div>
             <div className="bag-total">
               <span>Bag subtotal</span>
@@ -145,10 +148,13 @@ export function BagView() {
               {user
                 ? "Your bag is saved to your account and syncs across devices."
                 : "Your bag is saved on this device."}{" "}
-              This is a public demo storefront; purchasing, payments, and
-              shipping are not available yet.
+              Checkout is available for eligible products once ordering opens.
+              Demo items cannot be purchased.
             </p>
             <Button asChild>
+              <Link href="/checkout">Continue to checkout</Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href="/shop/all">Continue exploring</Link>
             </Button>
           </aside>

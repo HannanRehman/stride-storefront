@@ -20,6 +20,10 @@ export default async function Page() {
         your profile and addresses up to date here.
       </p>
       <div className="account-overview-links">
+        <Link href="/account/orders">
+          <h3>Your orders</h3>
+          <p>Track your orders and delivery details.</p>
+        </Link>
         <Link href="/account/profile">
           <h3>Your details</h3>
           <p>Manage your name and phone number.</p>
@@ -34,8 +38,8 @@ export default async function Page() {
         </Link>
       </div>
       <p className="form-note">
-        Products are currently demo placeholders. Checkout and orders will be
-        available in a later phase.
+        Ordering opens when real products and delivery arrangements are ready.
+        Existing orders are available under Your orders.
       </p>
     </>
   );

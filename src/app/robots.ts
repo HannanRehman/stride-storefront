@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { siteBase } from "@/lib/seo";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
@@ -10,6 +11,9 @@ export default function robots(): MetadataRoute.Robots {
         "/search",
         "/account",
         "/admin",
+        "/checkout",
+        "/api/orders",
+        "/launch/preferences",
         "/login",
         "/register",
         "/forgot-password",
@@ -19,6 +23,6 @@ export default function robots(): MetadataRoute.Robots {
         "/*?*",
       ],
     },
-    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/sitemap.xml`,
+    sitemap: `${siteBase()}/sitemap.xml`,
   };
 }

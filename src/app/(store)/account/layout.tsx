@@ -22,6 +22,8 @@ export default async function Layout({
           <p className="account-email">{session.user.email}</p>
           <nav aria-label="Account navigation">
             <Link href="/account">Overview</Link>
+            <Link href="/account/orders">Orders</Link>
+            <Link href="/account/requests">Help requests</Link>
             <Link href="/account/profile">Profile</Link>
             <Link href="/account/addresses">Saved addresses</Link>
             <Link href="/favorites">Favorites</Link>

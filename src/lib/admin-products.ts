@@ -23,6 +23,7 @@ export type ProductRecord = {
   published_at: string;
   published: boolean;
   ever_published: boolean;
+  orderable?: boolean;
   updated_at: string;
 };
 export class AdminError extends Error {
@@ -164,7 +165,12 @@ export function productInput(
     );
   if (typeof input.published !== "boolean")
     throw new AdminError("Choose draft or published status.");
+  if (input.orderable !== undefined && typeof input.orderable !== "boolean")
+    throw new AdminError("Choose checkout availability.");
+  if (input.orderable && (input.currency !== "PKR" || price <= 0))
+    throw new AdminError("Checkout-ready products need a positive PKR price.");
   return {
+    orderable: input.orderable === true,
     slug,
     name: text(input.name, "Product name", 120),
     subtitle: text(input.subtitle, "Subtitle", 160),
@@ -199,6 +205,7 @@ export function recordToProduct(row: ProductRecord): Product {
     price: row.price_minor,
     compareAt: row.compare_at_minor ?? undefined,
     currency: row.currency,
+    orderable: row.orderable === true,
     image: row.image,
     images: row.images?.length ? row.images : undefined,
     color: row.color,

@@ -23,6 +23,11 @@ export default async function AdminLayout({
         <nav aria-label="Store management">
           <Link href="/admin">Overview</Link>
           <Link href="/admin/products">Products</Link>
+          <Link href="/admin/orders">Orders</Link>
+          <Link href="/admin/requests">Requests</Link>
+          <Link href="/admin/content">Content</Link>
+          <Link href="/admin/audience">Audience</Link>
+          <Link href="/admin/readiness">Launch readiness</Link>
           <Link href="/" className="admin-store-link">
             View storefront
           </Link>

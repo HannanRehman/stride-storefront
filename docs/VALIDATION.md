@@ -1,5 +1,19 @@
 # Public storefront validation
 
+## Store completion — October 27, 2026
+
+- Lint, TypeScript, **31 unit tests** and the Next.js **16.4.3 production build** passed.
+- The final local browser passes cover **40 scenarios**: 12 account/checkout/CMS/support/audience scenarios, 6 owner product scenarios and 22 public storefront scenarios. One separate real hosted-account credential fixture was deliberately skipped; the complete account journey passed against isolated Auth/SQL transport, including guest merge, two-device persistence, profile/address CRUD, saved-address checkout selection, recovery callback/password replacement and rejection of the old password.
+- New commerce/operations coverage includes immutable receipts, stock, COD fulfillment/tracking/cash collection, cancellation restocking, stale writes, guarded launch settings, lost-response retries for orders and support requests, private conversations, CMS draft/preview/publication/revisions, and launch permission/confirmation/unsubscribe. Axe scans found no serious/critical issues in the scanned checkout, CMS and account surfaces. Desktop/mobile screenshots were inspected and remain ignored local artifacts.
+- `scripts/verify-production.mjs` passed against a local production server: homepage/product gallery/PKR price, contact/launch/policy pages, canonical, actual 1200×630 social PNG, 375px layout, response headers, protected pages/APIs and unauthorized email-worker rejection. It reported zero browser page errors. Development runs can log image-loading recommendations and aborted-navigation stream messages; production smoke did not reproduce browser errors.
+- All migrations and owner/customer/checkout/operations SQL assertions passed in disposable PGlite. The commerce browser suite passed **12/12 again** after moving privileged implementations to `store_internal`. Local Auth/SMTP transport is simulated; no real emails were sent.
+- Supabase authorization was restored. Migrations `20261026225242_checkout_orders`, `20261026225251_store_operations` and `20261026225739_private_rpc_implementations` are applied. Hosted checkout/operations assertions passed again after the private-schema change; owner/customer assertions passed too. Every assertion fixture rolls back.
+- Hosted verification found 36 original published products, 2 owners, **0 orderable products**, **ordering closed**, PKR 250 delivery, empty public content overrides and **0 orders/requests/signups/email jobs/test users**. No genuine stock, price, product name or brand content was changed.
+- The security advisor now reports no exposed privileged functions or RLS problems. Its one remaining warning is existing disabled Supabase leaked-password protection; available tools do not change Auth configuration. Performance findings are unused-index INFO notices retained for future queries/FKs.
+- The owner authorized push and deployment after local verification. Deployment completion and the exact Git commit are confirmed in the session's final report. Before public sales, supply actual merchant content, sender/SMTP, real products/stock and perform coordinated production owner/customer acceptance. Actual hosted multi-connection final-unit contention and real email/courier/payment-provider acceptance are not claimed proven by the local fixtures.
+
+The remaining sections record previous validation milestones.
+
 Validated during the October 14, 2026 implementation session in `E:\Nikereplica`.
 
 ## Final check results

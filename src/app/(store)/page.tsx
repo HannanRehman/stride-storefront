@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Rail } from "@/components/rail";
 import { ProductCard } from "@/components/product-card";
 import { getCatalog } from "@/lib/catalog-server";
+import { getSiteContent } from "@/lib/site-content-server";
+import { CampaignHero, CampaignIntro } from "@/components/campaign-hero";
+export const metadata = { alternates: { canonical: "/" } };
 const campaigns = [
   {
     image: "/images/hero.webp",
@@ -30,7 +33,10 @@ const campaigns = [
   },
 ];
 export default async function Home() {
-  const products = await getCatalog();
+  const [products, content] = await Promise.all([
+    getCatalog(),
+    getSiteContent(),
+  ]);
   const featured = [
     "navy-hoodie-trouser-set",
     "pace-01-men",
@@ -44,47 +50,8 @@ export default async function Home() {
     .filter((p) => !!p);
   return (
     <main id="main">
-      <section className="hero">
-        <Image
-          src="/images/hero-hoodie.webp"
-          alt="Young man wearing a black oversized hoodie against a charcoal concrete wall"
-          fill
-          preload
-          sizes="100vw"
-          className="hero-image"
-        />
-        <div className="hero-shade" />
-        <div className="hero-content">
-          <p>New season. New possibilities.</p>
-          <h1>
-            FIND YOUR
-            <br />
-            NEXT GEAR.
-          </h1>
-          <p className="hero-description">
-            For the miles, the moments, and everything in between.
-          </p>
-          <Button asChild variant="secondary">
-            <Link href="/collections/pace">
-              Find your pace <ArrowUpRight size={17} />
-            </Link>
-          </Button>
-        </div>
-        <span className="hero-side-note">The Pace collection</span>
-      </section>
-      <section className="campaign-intro">
-        <p>A fresh start looks good on you.</p>
-        <h2>MADE TO GO YOUR OWN WAY.</h2>
-        <p>Considered essentials. Everyday performance. A little more you.</p>
-        <div>
-          <Button asChild>
-            <Link href="/men">Shop men</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/women">Shop women</Link>
-          </Button>
-        </div>
-      </section>
+      <CampaignHero content={content} />
+      <CampaignIntro content={content} />
       <section className="section editorial-section">
         <div className="section-heading">
           <h2>For whatever moves you</h2>

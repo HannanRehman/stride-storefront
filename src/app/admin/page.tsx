@@ -75,10 +75,11 @@ export default async function AdminHome() {
       <section className="admin-launch-note">
         <h2>Before accepting orders</h2>
         <p>
-          This dashboard manages the catalog. Checkout, payments, delivery and
-          order management are still being prepared. Publishing a product makes
-          it visible for browsing; it does not enable purchasing.
+          Publishing makes a product visible. To accept cash on delivery orders,
+          mark real PKR products as checkout-ready and open ordering after
+          stock, delivery arrangements and store policies are ready.
         </p>
+        <Link href="/admin/orders">Manage orders and checkout</Link>
       </section>
     </main>
   );

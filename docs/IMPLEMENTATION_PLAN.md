@@ -1,5 +1,7 @@
 # Nike-Inspired Storefront Implementation Plan
 
+October 27 completion update: COD checkout, customer receipts/history, stock reservation, owner fulfillment, homepage/contact/policy CMS, private help requests, launch consent, email infrastructure, sharing/SEO and readiness are implemented and locally verified. The three new migrations are applied and hosted assertions passed. Delivery is PKR 250; public ordering stays closed and demo products ineligible. Email sending and online payment are not active without real provider setup. The owner authorized GitHub push and Vercel deployment after tests. See [checkout setup](./CHECKOUT_ORDERS_SETUP.md), [store operations](./STORE_OPERATIONS_SETUP.md) and [validation](./VALIDATION.md). Earlier dated notes below record prior milestones.
+
 October 26 update: owner product-management code is implemented locally; Supabase owner/catalog/storage migrations are applied with approval and both confirmed owners are activated. Homepage CMS is deferred. Checkout, payments and orders remain pending. See [owner dashboard setup](./OWNER_DASHBOARD_SETUP.md) for current activation and verification status; code has not been pushed for this milestone.
 
 **Prepared:** October 14, 2026  

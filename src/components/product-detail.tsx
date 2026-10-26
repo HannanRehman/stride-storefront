@@ -271,6 +271,11 @@ export function ProductDetail({ product }: { product: Product }) {
           </p>
         )}
         <p className="product-description">{product.description}</p>
+        {!product.preview && !product.orderable && (
+          <p className="product-notice">
+            Available for browsing. This item cannot be ordered at checkout.
+          </p>
+        )}
         <p>
           {photographed
             ? product.preview
@@ -284,7 +289,7 @@ export function ProductDetail({ product }: { product: Product }) {
             title: "Product details",
             content: product.preview
               ? "Includes one navy pullover hoodie and one matching trouser. Drawstring hood, ribbed cuffs and hem, drawstring trouser waistband, and white printed detailing. Price is provisional. Stock and exact fit measurements have not yet been confirmed."
-              : photographed
+              : photographed || product.orderable
                 ? product.description
                 : "This is an original Stride demo product concept. Color, materials and fit are illustrative. Availability shown here is sample catalog data; it does not represent stock from a live merchant.",
           },
@@ -292,7 +297,7 @@ export function ProductDetail({ product }: { product: Product }) {
             title: "Material & care",
             content: product.preview
               ? "Fabric composition and weight have not yet been confirmed. Follow the garment's own care label for washing and drying instructions."
-              : photographed
+              : photographed || product.orderable
                 ? "Follow the garment's own label for fabric composition, washing and drying instructions."
                 : product.category === "shoes"
                   ? "Concept upper: textile or suede panels. Concept sole: rubber. For actual footwear, follow the care label, brush away dry dirt and avoid machine washing unless approved by the manufacturer."
@@ -302,8 +307,9 @@ export function ProductDetail({ product }: { product: Product }) {
           },
           {
             title: "Shipping & returns",
-            content:
-              "This public storefront saves a bag for browsing. It does not currently accept orders, collect payment, or ship products. No delivery or returns commitment is made.",
+            content: product.orderable
+              ? "When ordering is open, checkout shows the full PKR total including delivery within Pakistan. Cash is due on delivery. Orders require store confirmation. Read Shipping & returns before ordering."
+              : "This browsing item is not available for checkout. Adding it to your bag does not reserve stock or create an order.",
           },
           {
             title: "Reviews",

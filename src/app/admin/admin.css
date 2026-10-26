@@ -186,6 +186,18 @@ html:has(.admin-shell) {
 .admin-main input[readonly] {
   background: #f5f5f5;
 }
+.admin-main label.order-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-main .order-checkbox input {
+  width: 20px;
+  min-height: 20px;
+  height: 20px;
+  padding: 0;
+  flex: 0 0 20px;
+}
 .admin-main small {
   font-size: 12px;
   font-weight: 400;

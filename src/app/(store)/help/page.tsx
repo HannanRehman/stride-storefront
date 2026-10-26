@@ -41,11 +41,19 @@ export default function Page() {
           them to your account and use them across devices.
         </p>
         <p>
-          Purchasing is not enabled in this demo. Registration and password
-          recovery depend on the store’s email setup; the account forms explain
-          when those features are unavailable. For more information, see{" "}
+          Ordering opens separately for eligible products. For order questions,
+          use your private help requests or the contact page. Registration and
+          password recovery depend on the store’s email setup; the account forms
+          explain when those features are unavailable. For more information, see{" "}
           <Link href="/shipping-returns">shipping and returns</Link> or our{" "}
           <Link href="/privacy">privacy information</Link>.
+        </p>
+      </section>
+      <section>
+        <h2>Contact and order help</h2>
+        <p>
+          <Link href="/contact">Contact the store</Link> or{" "}
+          <Link href="/account/requests">view your help requests</Link>.
         </p>
       </section>
       <section>

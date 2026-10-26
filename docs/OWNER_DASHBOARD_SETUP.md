@@ -1,5 +1,7 @@
 # Owner dashboard setup
 
+October 27 update: product management was deployed at `2a488ef`. The newer [checkout/order work](./CHECKOUT_ORDERS_SETUP.md) and [store operations](./STORE_OPERATIONS_SETUP.md) add order management, private requests, homepage CMS, launch interest and readiness; all three new migrations are applied and verified. The owner authorized this tested release's push/deployment. Earlier activation notes below describe the prior product milestone.
+
 This milestone builds product management. Homepage CMS, checkout, payments, orders and public brand settings remain separate work. Nothing here requires a final brand name or real assortment.
 
 ## What is implemented
@@ -17,7 +19,7 @@ This milestone builds product management. Homepage CMS, checkout, payments, orde
 
 The owner approved hosted setup. Migrations `20261025211834_owner_products` and `20261025211936_owner_catalog_read_policy` are applied to project `simfvguqxbqevvrgkkdp`, with their UTC versions mirrored in local filenames. Product-photo storage is configured. Both designated accounts are registered, email-confirmed and have verified owner membership. No user email addresses or real account UUIDs are committed in this guide.
 
-Both hosted SQL assertion suites passed in rolled-back transactions, and follow-up checks found no test accounts or products left behind. All 36 published demo products remain. The dashboard application and Next.js security patch are still local until the owner requests a commit/push/deployment.
+Both hosted SQL assertion suites passed in rolled-back transactions, and follow-up checks found no test accounts or products left behind. All 36 published demo products remain. That dashboard application and security patch were subsequently pushed and deployed; the latest completion work is documented in the current guides above.
 
 The security advisor reports leaked-password protection disabled; enable it in Supabase Auth's password security settings when available for this project. The connected MCP tools do not expose Auth configuration updates. The performance advisor now reports only three existing unused-index notices; retain those catalog/FK indexes for their intended queries. The duplicate read-policy warning introduced during setup was resolved by the follow-up migration.
 
@@ -44,7 +46,7 @@ The security advisor reports leaked-password protection disabled; enable it in S
 - `store_owners` allows authenticated users to read only their own membership and grants no app-client writes. Catalog insert/update policies require membership. There is no authenticated hard-delete privilege.
 - Storage insert policies require membership and a path beginning with the caller's UUID. Public photo URLs are readable even for unpublished products; draft descriptions/prices are owner-only. Draft images are not confidential storage.
 - Replacing/removing a photo in the editor does not delete uploaded objects. This avoids deleting images referenced by saved products or cached public pages. Periodic unused-asset cleanup is a later operational task.
-- Per-size stock is limited to 100 to match existing bag behavior. It remains presentation stock until transactional checkout is implemented.
+- Per-size available stock is limited to 100. The applied checkout migration now reserves and restores it transactionally; see the cancellation/restock limits in the checkout guide.
 - Collection choices use the existing `everyday`, `pace`, `court` and `motion` routes. Adding new collections needs a separate route/content change.
 - The full public catalog is read in stable batches instead of silently dropping entries after 200. Admin product lists use 20-row pages. Overview's out-of-stock count explicitly labels its first-1,000-product limit if reached.
 

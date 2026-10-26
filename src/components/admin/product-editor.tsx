@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import type { ProductRecord } from "@/lib/admin-products";
 type Form = {
+  orderable: boolean;
   name: string;
   slug: string;
   subtitle: string;
@@ -30,6 +31,7 @@ type Form = {
   images: { src: string; alt: string; label: string }[];
 };
 const blank: Form = {
+  orderable: false,
   name: "",
   slug: "",
   subtitle: "",
@@ -50,6 +52,7 @@ const blank: Form = {
 };
 function toForm(product: ProductRecord): Form {
   return {
+    orderable: product.orderable === true,
     name: product.name,
     slug: product.slug,
     subtitle: product.subtitle,
@@ -502,10 +505,23 @@ export function ProductEditor({ id }: { id?: string }) {
               </section>
               <section className="admin-editor-section">
                 <h2>Sizes and stock</h2>
+                <label className="order-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={form.orderable}
+                    onChange={(e) => field("orderable", e.target.checked)}
+                  />
+                  Allow checkout for this product
+                </label>
+                <p>
+                  Enable only for real products with a positive PKR price and
+                  verified stock. Demo products must stay disabled. Stock shown
+                  here is available stock after order reservations.
+                </p>
                 <p>
                   Enter confirmed quantities only. Leave stock at zero until you
-                  know what is available. Stock is not reserved until checkout
-                  is implemented.
+                  know what is available. Placing an order reserves stock;
+                  cancelling an unshipped order returns it.
                 </p>
                 {form.sizes.map((size, index) => (
                   <div className="admin-size-row" key={index}>

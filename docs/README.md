@@ -1,5 +1,7 @@
 # Stride public storefront
 
+October 27: checkout, order management, homepage CMS, private customer requests, launch interest, email infrastructure and launch readiness are implemented and locally verified. Their three Supabase migrations are applied; public ordering remains closed, all demo products remain ineligible, and email sending is disabled. The owner authorized pushing/deploying this tested release. See [checkout setup](./CHECKOUT_ORDERS_SETUP.md) and [store operations](./STORE_OPERATIONS_SETUP.md).
+
 ## Documentation
 
 All project documentation and plans live in this folder. Commands and code paths in these documents are relative to the repository root unless stated otherwise. Tool instruction files and installed skills stay in their required locations.
@@ -8,6 +10,8 @@ All project documentation and plans live in this folder. Commands and code paths
 - [Original master specification](./NIKE_INSPIRED_CODEX_MASTER_SPEC.md)
 - [Admin panel and CMS plan](./ADMIN_CMS_PLAN.md)
 - [Owner dashboard setup](./OWNER_DASHBOARD_SETUP.md)
+- [Checkout and orders plan](./CHECKOUT_ORDERS_PLAN.md) and [setup](./CHECKOUT_ORDERS_SETUP.md)
+- [Store operations setup](./STORE_OPERATIONS_SETUP.md) and [completion work plan](./COMPLETION_WORK_PLAN.md)
 - [Navy product listing draft](./NAVY_PRODUCT_DRAFT.md)
 - [Storefront design](./PUBLIC_STOREFRONT_DESIGN.md)
 - [Account implementation](./ACCOUNT_IMPLEMENTATION.md) and [auth setup](./AUTH_SETUP.md)
@@ -38,7 +42,7 @@ The homepage, clothing catalog and search now include a navy hoodie-and-trouser 
 
 ## Implemented in this step
 
-The local `/admin` dashboard now manages product drafts, photos, prices and size-level stock. Hosted owner migrations and both confirmed owner memberships are activated; deployment remains pending. Homepage CMS is deferred. See [owner dashboard setup](./OWNER_DASHBOARD_SETUP.md) for current status and acceptance checks.
+The `/admin` dashboard manages products, orders, customer requests, versioned content, launch interest and readiness. Hosted migrations and both confirmed owner memberships are activated. See [owner dashboard setup](./OWNER_DASHBOARD_SETUP.md) and the current operations guides.
 
 - Original Stride identity, copy, and eight generated campaign/product assets, hosted locally.
 - Homepage: campaign, editorial panels, featured product rail, categories, classic collections, sports, story, category matrix and footer.
@@ -52,10 +56,14 @@ The local `/admin` dashboard now manages product drafts, photos, prices and size
 - Metadata, canonical routes, sitemap, robots, locally hosted licensed fonts.
 - Supabase public-catalog migration, repeatable SQL seed and optional server-side read adapter with public-read RLS.
 - Account sign-in/out, private profile/addresses, server bag/favorites, repeatable guest merge and conditional signup/recovery forms.
+- Cash on delivery checkout with saved-address selection, PKR 250 delivery, immutable receipts, retry-safe transactional stock reservation and purchased-bag subtraction; private customer history and owner fulfillment/cancellation/tracking.
+- Versioned homepage/contact/policy CMS with saved drafts, preview, publication and revision restoration; private customer support/return/cancellation request conversations.
+- Permission-based launch interest with confirmation/unsubscribe, private email outbox and disabled-by-default sender; owner readiness and delivery-state screens.
+- Original social image, product share/copy action, conditional truthful Product data and hardened response headers.
 
 ## Scope and remaining work
 
-The public storefront and account milestone are implemented. Accounts include email/password sign-in, conditional signup/recovery, protected profile and saved addresses, account bag/favorites and repeatable guest merging. Purchasing, payment, checkout, order history, real inventory reservation and shipping are not enabled. The UI does not claim to accept orders. No card data is collected. Real products, photography, variants and inventory are deferred until the assortment is supplied.
+The application supports cash on delivery orders when the owner explicitly opens checkout and marks real PKR products eligible. Ordering is currently closed; no card payment, courier booking or public email sending is activated. Final brand/domain, actual merchandise and stock, staffed contacts, delivery/returns/refund/tax information, sender credentials and real production acceptance remain merchant setup. No business facts, fake reviews or financial-provider success were invented.
 
 Product pages currently have one original concept image and one colorway each, rather than full multi-view/variant galleries. Category-specific technical facets, ratings/review submission, real member benefits, and final product fit charts belong to later milestones. No fictional customer reviews are displayed. The public Supabase adapter reads published products in stable batches; the owner list uses database-side pagination.
 
@@ -63,7 +71,7 @@ The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./
 
 ## Accounts
 
-`supabase/migrations/20261014095017_customer_accounts.sql` is applied to the connected project. It adds customer profiles, addresses, bag items, favorites and guest-merge receipts. Every table has owner-only RLS; anonymous users have no privileges. The shopping RPC runs with caller permissions and serializes each user's mutations. No service-role key is used by the application.
+`supabase/migrations/20261014095017_customer_accounts.sql` is applied to the connected project. It adds customer profiles, addresses, bag items, favorites and guest-merge receipts. Every table has owner-only RLS; anonymous users have no privileges. The shopping RPC runs with caller permissions and serializes each user's mutations. Accounts and checkout do not use a service-role key; only the optional, secret-protected server email worker requires one.
 
 Sign-in, sign-out, profile/addresses and account shopping are enabled when the two Supabase variables are set. Signup and recovery additionally require `AUTH_EMAIL_ENABLED=true` after email delivery and redirect configuration are verified. The default is disabled, with a clear message in the forms. Configuring this flag alone does not configure email delivery.
 
@@ -89,7 +97,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 4. Restart the dev server. Confirm the 36 published entries appear.
 
-Anonymous visitors and ordinary customers can read only published catalog rows. Protected owner membership permits draft reads and catalog insert/update; public application clients cannot assign owner membership. Never place a service-role key in a public variable. When configuration is absent the app uses its local catalog; when configuration is present but broken it reports a load error instead of silently substituting local data. The catalog's JSON sizing/quantity data is presentation data, not a transaction-safe stock ledger. A later commerce migration must normalize variant inventory, authorize private records and implement checkout transactions separately.
+Anonymous visitors and ordinary customers can read only published catalog rows. Protected owner membership permits draft reads and catalog insert/update; public application clients cannot assign owner membership. Never place a service-role key in a public variable. When configuration is absent the app uses its local catalog; when configuration is present but broken it reports a load error instead of silently substituting local data. Checkout now locks the relevant catalog rows and updates size-level available stock atomically with immutable order snapshots. See the checkout guide for restock limits and retry behavior. Privileged implementations live in non-exposed `store_internal`; public RPC entry points run with invoker privileges and retain explicit role grants.
 
 Catalog reads are deduplicated within a render, with a 60-second page revalidation interval. Set `NEXT_PUBLIC_SITE_URL` to the actual hostname when deploying so canonical URLs and the sitemap are accurate. Database availability is needed during a build when the Supabase adapter is configured.
 

@@ -53,9 +53,12 @@ export async function AuthPage({
           initialError={
             params.callbackError
               ? "This link has expired or could not be verified. Request a fresh link and open it in the same browser."
-              : params.updated
-                ? "Your password has been changed. Sign in with your new password."
-                : undefined
+              : undefined
+          }
+          initialMessage={
+            params.updated
+              ? "Your password has been changed. Sign in with your new password."
+              : undefined
           }
         />
       </div>

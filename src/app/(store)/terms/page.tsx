@@ -1,19 +1,23 @@
+import { getSiteContent } from "@/lib/site-content-server";
 export const metadata = { title: "Terms of use" };
-export default function Page() {
+export default async function Page() {
+  const content = await getSiteContent();
   return (
     <main id="main" className="info-page section">
       <h1>TERMS OF USE</h1>
       <p>
-        Stride is an original demonstration storefront. Product concepts,
-        images, prices and availability are illustrative. Nothing on this site
-        creates a sales contract or an offer to supply goods.
+        Stride is preparing for launch. Demo product concepts remain
+        illustrative and cannot be purchased. Ordering opens separately for
+        products the store has made available for checkout.
       </p>
       <section>
-        <h2>Using the demo</h2>
+        <h2>Browsing and ordering</h2>
         <p>
           You may browse, save favorites and build a bag, with account syncing
-          when you sign in. Purchasing is not available. No product-performance,
-          delivery, warranty or refund promise is made.
+          when you sign in. When ordering is open, review the product sizes,
+          delivery address and full total before placing a cash on delivery
+          order. Your account shows the received order and its status. Orders
+          await store confirmation; no online payment is taken.
         </p>
       </section>
       <section>
@@ -31,6 +35,12 @@ export default function Page() {
           appropriate commercial policies before enabling real sales.
         </p>
       </section>
+      {content.termsInfo && (
+        <section>
+          <h2>Store terms</h2>
+          <p className="plain-content">{content.termsInfo}</p>
+        </section>
+      )}
     </main>
   );
 }

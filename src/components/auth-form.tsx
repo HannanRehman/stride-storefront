@@ -10,19 +10,22 @@ export function AuthForm({
   mode,
   next,
   initialError,
+  initialMessage,
   configured,
   emailEnabled,
 }: {
   mode: Mode;
   next?: string;
   initialError?: string;
+  initialMessage?: string;
   configured: boolean;
   emailEnabled: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError || "");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialMessage || "");
+  const [showPasswords, setShowPasswords] = useState(false);
   const needsEmail = mode === "register" || mode === "recovery";
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,7 +101,11 @@ export function AuthForm({
             {mode === "password" ? "New password" : "Password"}
             <input
               name="password"
-              type="password"
+              aria-label={mode === "password" ? "New password" : "Password"}
+              aria-describedby={
+                mode !== "login" ? "auth-password-hint" : undefined
+              }
+              type={showPasswords ? "text" : "password"}
               autoComplete={
                 mode === "login" ? "current-password" : "new-password"
               }
@@ -106,7 +113,9 @@ export function AuthForm({
               minLength={mode === "login" ? 1 : 10}
               maxLength={128}
             />
-            {mode !== "login" && <small>Use at least 10 characters.</small>}
+            {mode !== "login" && (
+              <small id="auth-password-hint">Use at least 10 characters.</small>
+            )}
           </label>
         )}
         {(mode === "register" || mode === "password") && (
@@ -114,13 +123,23 @@ export function AuthForm({
             Confirm password
             <input
               name="confirmPassword"
-              type="password"
+              type={showPasswords ? "text" : "password"}
               autoComplete="new-password"
               required
               minLength={10}
               maxLength={128}
             />
           </label>
+        )}
+        {mode !== "recovery" && (
+          <button
+            type="button"
+            className="order-link-button"
+            aria-pressed={showPasswords}
+            onClick={() => setShowPasswords((v) => !v)}
+          >
+            {showPasswords ? "Hide passwords" : "Show passwords"}
+          </button>
         )}
         {mode === "register" && (
           <p className="form-note">

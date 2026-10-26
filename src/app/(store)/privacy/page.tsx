@@ -1,5 +1,7 @@
+import { getSiteContent } from "@/lib/site-content-server";
 export const metadata = { title: "Privacy & cookies" };
-export default function Page() {
+export default async function Page() {
+  const content = await getSiteContent();
   return (
     <main id="main" className="info-page section">
       <h1>PRIVACY & COOKIES</h1>
@@ -19,6 +21,24 @@ export default function Page() {
         </p>
       </section>
       <section>
+        <h2>Checkout and order records</h2>
+        <p>
+          When ordering is open, placing an order saves your delivery name,
+          mobile number, address, purchased items, prices and order history in
+          Supabase. Your signed-in account and store owners can view these
+          records. Cash on delivery does not collect card or banking details.
+          The store uses delivery details to fulfill your order and provide them
+          to its delivery partner when arranging shipment.
+        </p>
+        <p>
+          An unfinished checkout attempt is kept in this tab’s session storage,
+          including the delivery form and reviewed total, so a retry can check
+          the same order rather than create a duplicate. It is removed when the
+          order is confirmed by the website. Closing the tab clears this local
+          recovery information; it does not cancel an order already received.
+        </p>
+      </section>
+      <section>
         <h2>Cookies and tracking</h2>
         <p>
           Essential session cookies keep you signed in and support confirmation
@@ -26,6 +46,24 @@ export default function Page() {
           advertising scripts or optional tracking cookies. The hosting and
           authentication providers may process ordinary request and security
           logs.
+        </p>
+      </section>
+      <section>
+        <h2>Help requests and launch updates</h2>
+        <p>
+          Help requests save your messages, request type, related order and
+          conversation history. Only your account and store owners can read
+          them. An unconfirmed new request is kept in this tab’s session storage
+          so you can retry the same attempt after a connection problem.
+        </p>
+        <p>
+          If you choose launch updates, we save your email, permission version,
+          confirmation and unsubscribe state. Signing up does not create an
+          account or reserve a product. Launch emails require confirmation and
+          you can unsubscribe using the preference link. When email delivery is
+          configured, the store’s email provider processes the recipient address
+          and notification content; delivery details remain in your private
+          account rather than being copied into notification emails.
         </p>
       </section>
       <section>
@@ -47,6 +85,12 @@ export default function Page() {
           your account. Contact the store owner for account deletion requests.
         </p>
       </section>
+      {content.privacyInfo && (
+        <section>
+          <h2>Store privacy information</h2>
+          <p className="plain-content">{content.privacyInfo}</p>
+        </section>
+      )}
     </main>
   );
 }

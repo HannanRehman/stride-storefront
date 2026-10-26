@@ -12,6 +12,7 @@ export type Product = {
   price: number;
   currency?: "USD" | "PKR";
   preview?: boolean;
+  orderable?: boolean;
   compareAt?: number;
   image: string;
   images?: { src: string; alt: string; label: string }[];

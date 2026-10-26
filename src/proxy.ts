@@ -29,7 +29,8 @@ export async function proxy(request: NextRequest) {
   if (
     !data?.claims &&
     (request.nextUrl.pathname.startsWith("/account") ||
-      request.nextUrl.pathname.startsWith("/admin"))
+      request.nextUrl.pathname.startsWith("/admin") ||
+      request.nextUrl.pathname === "/checkout")
   ) {
     const target = new URL("/login", request.url);
     target.searchParams.set("next", request.nextUrl.pathname);
@@ -43,6 +44,10 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/account/:path*",
+    "/checkout",
+    "/api/checkout/:path*",
+    "/api/orders/:path*",
+    "/api/requests/:path*",
     "/admin/:path*",
     "/api/admin/:path*",
     "/api/account/:path*",

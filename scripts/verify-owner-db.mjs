@@ -11,7 +11,7 @@ const db = new PGlite();
 try {
   await db.exec(`
     create role anon; create role authenticated; create role service_role;
-    create schema auth; create table auth.users (id uuid primary key);
+    create schema auth; create table auth.users (id uuid primary key,email text,email_confirmed_at timestamptz);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth, public to anon, authenticated, service_role;
     create schema storage;
@@ -27,6 +27,11 @@ try {
     "supabase/migrations/20261014095017_customer_accounts.sql",
     "supabase/migrations/20261025211834_owner_products.sql",
     "supabase/migrations/20261025211936_owner_catalog_read_policy.sql",
+    "supabase/migrations/20261026225242_checkout_orders.sql",
+    "supabase/migrations/20261026225251_store_operations.sql",
+    "supabase/migrations/20261026225739_private_rpc_implementations.sql",
+    "supabase/tests/checkout_orders.sql",
+    "supabase/tests/store_operations.sql",
     "supabase/tests/owner_products.sql",
     "supabase/tests/customer_accounts.sql",
   ]) {

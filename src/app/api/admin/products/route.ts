@@ -1,3 +1,4 @@
+import { catalogWrite } from "@/lib/catalog-write";
 import { revalidatePath } from "next/cache";
 import { ownerClient, adminFailure, adminBody } from "@/lib/admin-server";
 import { AdminError, productInput } from "@/lib/admin-products";
@@ -43,15 +44,11 @@ export async function POST(request: Request) {
     const product = productInput(input, process.env.NEXT_PUBLIC_SUPABASE_URL!);
     if (product.published)
       throw new AdminError("Create the product as a draft before publishing.");
-    const { data, error } = await client
-      .from("catalog_products")
-      .insert({
-        ...product,
-        id: crypto.randomUUID(),
-        published_at: new Date().toISOString().slice(0, 10),
-      })
-      .select()
-      .single();
+    const { data, error } = await catalogWrite(client, {
+      ...product,
+      id: crypto.randomUUID(),
+      published_at: new Date().toISOString().slice(0, 10),
+    });
     if (error?.code === "23505")
       throw new AdminError("That slug is already in use. Choose another.", 409);
     if (error) throw error;
@@ -72,13 +69,10 @@ export async function PATCH(request: Request) {
     )
       throw new AdminError("Reload the product before saving.");
     const product = productInput(input, process.env.NEXT_PUBLIC_SUPABASE_URL!);
-    const { data, error } = await client
-      .from("catalog_products")
-      .update(product)
-      .eq("id", input.id)
-      .eq("updated_at", input.updatedAt)
-      .select()
-      .maybeSingle();
+    const { data, error } = await catalogWrite(client, product, {
+      id: input.id,
+      updatedAt: input.updatedAt,
+    });
     if (error?.code === "23505")
       throw new AdminError("That slug is already in use. Choose another.", 409);
     if (error?.message.includes("published slug"))

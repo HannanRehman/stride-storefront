@@ -29,6 +29,18 @@ const valid = {
   images: [{ src: "/images/tee.webp", alt: "Navy garment", label: "Front" }],
 };
 describe("owner product boundaries", () => {
+  it("keeps products ineligible by default and requires positive PKR prices for checkout", () => {
+    expect(productInput(valid, project).orderable).toBe(false);
+    expect(productInput({ ...valid, orderable: true }, project).orderable).toBe(
+      true,
+    );
+    expect(() =>
+      productInput({ ...valid, orderable: true, currency: "USD" }, project),
+    ).toThrow(/PKR/);
+    expect(() =>
+      productInput({ ...valid, orderable: true, price: "0" }, project),
+    ).toThrow(/PKR/);
+  });
   it("converts prices exactly and rejects invalid monetary values", () => {
     expect(minorUnits("7000")).toBe(700000);
     expect(minorUnits("0.29")).toBe(29);

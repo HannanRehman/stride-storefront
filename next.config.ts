@@ -5,6 +5,34 @@ const project = process.env.NEXT_PUBLIC_SUPABASE_URL
 const config: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
+  headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            key: "Content-Security-Policy",
+            value:
+              "base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'",
+          },
+        ],
+      },
+      {
+        source: "/launch/preferences",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "private, no-store" },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: project
       ? [

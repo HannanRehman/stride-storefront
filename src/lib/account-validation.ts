@@ -10,6 +10,7 @@ export function safeNext(value: unknown) {
   return /^\/admin(?:\/[^?#]*)?(?:\?[^#]*)?$/.test(value) ||
     value.startsWith("/account") ||
     value === "/cart" ||
+    value === "/checkout" ||
     value === "/favorites" ||
     value === "/reset-password"
     ? value

@@ -27,7 +27,13 @@ const navigation = [
   { label: "Kids", href: "/kids" },
   { label: "Sale", href: "/shop/all?sale=true" },
 ];
-export function Header() {
+export function Header({
+  announcement = "Meet the Pace collection",
+  announcementHref = "/collections/pace",
+}: {
+  announcement?: string;
+  announcementHref?: string;
+}) {
   const { bag, favorites, catalog, user } = useStore();
   const [mobile, setMobile] = useState(false);
   const [search, setSearch] = useState(false);
@@ -217,7 +223,7 @@ export function Header() {
       </header>
       <div className="announcement">
         <span>A fresh pace starts here.</span>
-        <Link href="/collections/pace">Meet the Pace collection</Link>
+        <Link href={announcementHref}>{announcement}</Link>
       </div>
       <Dialog open={mobile} onOpenChange={setMobile}>
         <DialogContent className="side-sheet">

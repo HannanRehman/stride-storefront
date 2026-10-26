@@ -1,3 +1,6 @@
+import { ShareLink } from "@/components/share-link";
+import { publicCheckoutOpen } from "@/lib/public-checkout-server";
+import { serializeStructuredData, siteBase } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getCatalog } from "@/lib/catalog-server";
@@ -15,6 +18,22 @@ export async function generateMetadata({
     title: product?.name || "Product not found",
     description: product?.description,
     alternates: { canonical: `/product/${slug}` },
+    openGraph: product
+      ? {
+          title: product.name,
+          description: product.description,
+          url: `/product/${slug}`,
+          images: [{ url: product.image, alt: product.name }],
+        }
+      : undefined,
+    twitter: product
+      ? {
+          card: "summary_large_image" as const,
+          title: product.name,
+          description: product.description,
+          images: [product.image],
+        }
+      : undefined,
   };
 }
 export default async function Page({
@@ -26,6 +45,30 @@ export default async function Page({
   const catalog = await getCatalog();
   const product = catalog.find((p) => p.slug === slug);
   if (!product) notFound();
+  const checkoutOpen = product.orderable ? await publicCheckoutOpen() : false;
+  const base = siteBase();
+  const structured = product.orderable
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.name,
+        description: product.description,
+        image: new URL(product.image, base).href,
+        ...(checkoutOpen
+          ? {
+              offers: {
+                "@type": "Offer",
+                url: new URL(`/product/${slug}`, base).href,
+                priceCurrency: product.currency,
+                price: (product.price / 100).toFixed(2),
+                availability: product.sizes.some((s) => s.stock > 0)
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+              },
+            }
+          : {}),
+      }
+    : null;
   const related = catalog
     .filter(
       (p) =>
@@ -53,7 +96,18 @@ export default async function Page({
         <span>/</span>
         <span>{product.name}</span>
       </div>
+      {structured && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeStructuredData(structured),
+          }}
+        />
+      )}
       <ProductDetail key={product.id} product={product} />
+      <div className="section product-share">
+        <ShareLink title={product.name} />
+      </div>
       <Rail
         title="Make it your own"
         href={`/shop/all?audience=${product.audience}`}

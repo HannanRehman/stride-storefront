@@ -1,3 +1,4 @@
+import "./orders.css";
 import type { Metadata } from "next";
 import "@fontsource/barlow-condensed/700.css";
 import "@fontsource/dm-sans/400.css";
@@ -13,6 +14,18 @@ export const metadata: Metadata = {
   description:
     "Original sportswear concepts for running, training and everyday movement. Explore the Stride public demo storefront.",
   icons: { icon: "/icon.svg" },
+  openGraph: {
+    type: "website",
+    siteName: "Stride",
+    locale: "en_PK",
+    title: "Stride — Find your next gear",
+    description: "Original sportswear concepts and everyday essentials.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Stride — Find your next gear",
+    description: "Original sportswear concepts and everyday essentials.",
+  },
 };
 export const revalidate = 60;
 export default async function RootLayout({

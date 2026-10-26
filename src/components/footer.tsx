@@ -23,6 +23,7 @@ const groups = [
     title: "Help",
     links: [
       ["Get help", "/help"],
+      ["Contact", "/contact"],
       ["Size guide", "/size-guide"],
       ["Shipping & returns", "/shipping-returns"],
       ["Your bag", "/cart"],
@@ -39,7 +40,7 @@ const groups = [
     ],
   },
 ];
-export function Footer() {
+export function Footer({ launchEnabled = false }: { launchEnabled?: boolean }) {
   return (
     <footer className="site-footer">
       <div className="footer-top">
@@ -51,6 +52,11 @@ export function Footer() {
           Back to top <ArrowUpRight size={19} />
         </Link>
       </div>
+      {launchEnabled && (
+        <p className="footer-launch">
+          <Link href="/launch">Hear about the first launch</Link>
+        </p>
+      )}
       <div className="footer-columns">
         {groups.map((group) => (
           <details key={group.title} open>

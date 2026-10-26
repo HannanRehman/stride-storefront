@@ -1,5 +1,7 @@
 # Owner admin panel and homepage CMS
 
+October 27 completion update: product management, checkout/order management, private customer requests and homepage/contact/policy CMS are implemented and locally tested. The three new migrations are applied and verified. The owner authorized release after tests. See [store operations](./STORE_OPERATIONS_SETUP.md) and [checkout setup](./CHECKOUT_ORDERS_SETUP.md). The original planning scope below predates this completed milestone.
+
 Status: product-management implementation prepared locally on October 26, 2026. Hosted migrations, storage policies and both confirmed owner memberships are activated with approval; browser acceptance against real owner sessions and deployment remain pending. Homepage CMS is deferred at the owner's current request to focus on other work. Original decisions agreed October 15, 2026; see [owner dashboard setup](./OWNER_DASHBOARD_SETUP.md) for the current milestone.
 
 ## Goal and scope
