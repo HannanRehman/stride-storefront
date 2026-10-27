@@ -194,6 +194,9 @@ try {
   });
   if (worker.status !== 401)
     throw new Error("Email worker must require authorization");
+  const cron = await fetch(base + "/api/internal/email-worker");
+  if (cron.status !== 401)
+    throw new Error("Email scheduler must require authorization");
   if (errors.length) throw new Error(errors.join("\n"));
   console.log(
     "Production smoke passed: public pages, product gallery, custom 404/noindex, sitemap/robots, canonical/social PNG, mobile layout, security headers, private routes/APIs and disabled unauthorized email worker; zero browser page errors.",

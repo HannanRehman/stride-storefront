@@ -1,6 +1,6 @@
 # Email drafts
 
-Original black and white, single-column email layouts. Open [the preview index](index.html), then choose a draft. No messages are sent. These are proposed templates; the existing runtime email renderer is unchanged.
+Original black and white, single-column email layouts. Open [the preview index](index.html), then choose a draft. Opening previews sends nothing. The runtime renderer now uses this design for order/support/launch-confirmation messages, with private order details kept behind account links. [Two adapted Supabase Auth templates](supabase/README.md) are ready for dashboard installation. See [integration status](../EMAIL_DELIVERY_SETUP.md) for what is prepared versus activated.
 
 ## Design
 
@@ -20,7 +20,7 @@ HTML-escape substituted text and attribute values. Validate action URLs against 
 
 ## Activation boundaries
 
-The current worker handles order-status, support-reply and launch-confirmation jobs using its existing basic renderer. These HTML drafts have not replaced it. Signup/recovery delivery uses Supabase Auth separately. Password-change notices and launch broadcasts need their own verified event and consent logic; they are draft-only features. A verified sender, authentication redirect settings, SPF/DKIM/DMARC configuration and real inbox acceptance are separate launch work. No credentials or sender subscription were configured by generating these drafts.
+The current worker handles order-status, support-reply and launch-confirmation jobs using `src/lib/email.ts` and the shared layout in `src/lib/email-template.ts`. Runtime variants intentionally omit the draft's item/amount rows, because queued payloads carry IDs/status rather than authoritative monetary snapshots; the email links to the private order instead. Signup/recovery delivery uses Supabase Auth separately. Password-change notices and launch broadcasts need their own verified event and consent logic; they remain draft-only features. A verified sender, authentication redirect settings, SPF/DKIM/DMARC configuration and real inbox acceptance are still required. Delivery remains disabled; a single separately authorized MCP test was reported delivered.
 
 Use a text alternative alongside HTML. Suppress all order emails for simulated orders. Launch announcements require confirmed and still-active consent, working unsubscribe handling and final products. Security and transactional messages should not contain promotional copy. Test Gmail, Outlook and mobile mail clients before enabling any sending.
 

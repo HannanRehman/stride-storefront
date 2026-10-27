@@ -1,6 +1,6 @@
 # Stride public storefront
 
-October 27 improvements: performance/layout fixes, compact mobile navigation/footer, sectioned CMS, consistent shopping states and staged owner MFA/shared abuse controls are implemented. Any signed-in account can use the separate test set; real-product sales remain closed and order emails are suppressed for tests. Admin access still requires owner membership. The latest application changes and 11 email drafts have not been committed, pushed or deployed. See [implementation and verification results](./IMPROVEMENTS_IMPLEMENTATION.md) and the [original full audit](./FULL_SITE_TEST_REPORT.md).
+October 27 improvements: performance/layout fixes, compact mobile navigation/footer, sectioned CMS, consistent shopping states and staged owner MFA/shared abuse controls are deployed in release `91e7d4c`; live Chrome verification passed. Any signed-in account can use the separate test set; real-product sales remain closed and order emails are suppressed for tests. Admin access still requires owner membership. The 11 email designs remain drafts. See [remaining launch work](./LAUNCH_REMAINING.md), [implementation and verification results](./IMPROVEMENTS_IMPLEMENTATION.md) and the [original full audit](./FULL_SITE_TEST_REPORT.md).
 
 ## Documentation
 
@@ -19,6 +19,7 @@ All project documentation and plans live in this folder. Commands and code paths
 - [Current visual/feel review](./WEBSITE_DESIGN_REVIEW.md) and [full component audit](./FULL_SITE_TEST_REPORT.md)
 - [Improvements implementation](./IMPROVEMENTS_IMPLEMENTATION.md), [security setup](./SECURITY_SETUP.md) and [backup/recovery acceptance](./BACKUP_RECOVERY.md)
 - [Test checkout guide](./OWNER_TEST_ORDERS.md) and [11 email drafts](./email-templates/README.md)
+- [Current email integration and activation](./EMAIL_DELIVERY_SETUP.md) and [Supabase Auth templates](./email-templates/supabase/README.md)
 - [Pre-push audit: October 15](./PRE_PUSH_AUDIT_2026-10-15.md)
 - [Validation results](./VALIDATION.md)
 - [Asset credits](./ASSET_CREDITS.md) and [brand name ideas](./BRAND_NAME_IDEAS.md)

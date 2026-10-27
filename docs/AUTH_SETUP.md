@@ -1,5 +1,7 @@
 # Activate customer accounts
 
+**October 27 follow-up:** Resend MCP is connected and the requested generic test email was reported delivered. No sending domain exists yet. Dashboard-ready signup/reset templates are in [email-templates/supabase](email-templates/supabase/README.md); actual hosted SMTP, redirect allowlist and Auth template installation remain dashboard steps. Production signup/recovery remains disabled. See [current email integration status](EMAIL_DELIVERY_SETUP.md); historical local-testing notes below do not confirm current production activation.
+
 The code and database are prepared. These instructions describe remaining external configuration; email delivery has not been verified.
 
 ## Temporary local testing with Supabase's built-in sender

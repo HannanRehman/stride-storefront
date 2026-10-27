@@ -1,18 +1,17 @@
-import { createHash, timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { sendEmailJob, type EmailJob } from "@/lib/email";
+import { deliverEmailBatch, emailWorkerAuthorized } from "@/lib/email-worker";
 import { json } from "@/lib/account-http";
 export const maxDuration = 60;
+// Vercel Cron invokes GET with CRON_SECRET; trusted manual invocations use POST
+// with a separate worker secret. Both paths fail closed before claiming jobs.
+export async function GET(request: Request) {
+  return run(request, process.env.CRON_SECRET);
+}
 export async function POST(request: Request) {
-  const secret = process.env.EMAIL_WORKER_SECRET;
-  const provided = request.headers.get("authorization") || "";
-  if (
-    !secret ||
-    !timingSafeEqual(
-      createHash("sha256").update(provided).digest(),
-      createHash("sha256").update(`Bearer ${secret}`).digest(),
-    )
-  )
+  return run(request, process.env.EMAIL_WORKER_SECRET);
+}
+async function run(request: Request, secret?: string) {
+  if (!emailWorkerAuthorized(request, secret))
     return json({ error: "Not authorized." }, 401);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
     key = process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -34,38 +33,23 @@ export async function POST(request: Request) {
   const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data, error } = await client.rpc("claim_email_jobs", { p_limit: 3 });
-  if (error) return json({ error: "Email queue is not available." }, 503);
-  let sent = 0,
-    failed = 0;
-  for (const job of (data || []) as EmailJob[]) {
-    let success = false,
-      code = "";
-    try {
-      await sendEmailJob(job, { site, from, key: provider });
-      success = true;
-    } catch (e) {
-      code =
-        e instanceof Error && /^provider_http_\d{3}$/.test(e.message)
-          ? e.message
-          : "delivery_unconfirmed";
-    }
-    const ack = await client.rpc("finish_email_job", {
-      p_id: job.id,
-      p_lease: job.lease,
-      p_sent: success,
-      p_error: code,
-    });
-    if (ack.error || !ack.data)
-      return json(
-        {
-          error:
-            "Queue acknowledgement could not be confirmed. Inspect delivery state before retrying.",
-        },
-        503,
-      );
-    if (success) sent++;
-    else failed++;
+  try {
+    return json(
+      await deliverEmailBatch(client, {
+        site,
+        from,
+        key: provider,
+        brand: process.env.EMAIL_BRAND_NAME || "Stride Storefront",
+      }),
+    );
+  } catch {
+    // Do not expose private provider/queue responses or uncertain job details.
+    return json(
+      {
+        error:
+          "Email processing could not be confirmed. Inspect delivery state before retrying.",
+      },
+      503,
+    );
   }
-  return json({ sent, failed });
 }

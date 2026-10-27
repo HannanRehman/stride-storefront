@@ -1,6 +1,6 @@
 # Owner authentication and abuse protection
 
-October 27, 2026. Authenticator setup, MFA enforcement, shared database request limits and private security history are implemented. Migration `20261027140044_security_hardening` is applied and all six SQL assertion suites passed locally and on hosted Supabase. The matching gateway configuration is present locally and as an encrypted Vercel Production variable. The application changes have not been deployed. See [the implementation log](IMPROVEMENTS_IMPLEMENTATION.md).
+October 27, 2026. Authenticator setup, MFA enforcement, shared database request limits and private security history are implemented. Migration `20261027140044_security_hardening` is applied and all six SQL assertion suites passed locally and on hosted Supabase. The matching gateway configuration is present locally and as an encrypted Vercel Production variable. Release `91e7d4c` is deployed and live Chrome verification passed; both genuine owners still need their own enrollment. See [the remaining launch checklist](LAUNCH_REMAINING.md).
 
 ## Owner two-factor setup
 
