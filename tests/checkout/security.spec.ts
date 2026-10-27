@@ -1,6 +1,7 @@
 import { test, expect, type BrowserContext } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 const owner = "c0d00000-0000-4000-8000-000000000001";
-async function signIn(context: BrowserContext, sub = owner, aal = "aal1") {
+async function signIn(context: BrowserContext, sub = owner, aal = "aal2") {
   const payload = {
     sub,
     aal,
@@ -42,8 +43,42 @@ test("owner enrolls MFA; password-only admin and direct API are blocked until ve
   page,
   context,
 }) => {
-  await signIn(context);
-  await page.goto("/admin/security");
+  await context.clearCookies();
+  await page.goto("/login?next=/admin/orders");
+  await page
+    .getByLabel("Email address", { exact: true })
+    .fill("owner@example.invalid");
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("fixture-owner-password-123");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(/\/auth\/verify\?next=%2Fadmin%2Forders/);
+  await expect(page.locator(".admin-shell")).toHaveCount(0);
+  expect((await context.request.get("/api/admin/orders")).status()).toBe(428);
+  expect(
+    (await (await context.request.get("/api/admin/security")).json()).events,
+  ).toEqual([]);
+  await page.setViewportSize({ width: 375, height: 812 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const scan = await new AxeBuilder({ page }).analyze();
+  expect(
+    scan.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page.screenshot({
+    path: ".tools/owner-verification-mobile.png",
+    fullPage: true,
+  });
+  await page.goto("/admin/orders");
+  await expect(page).toHaveURL(/\/auth\/verify\?next=%2Fadmin%2Forders/);
+  await expect(
+    page.getByRole("navigation", { name: "Owner navigation" }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Set up authenticator", exact: true })
     .click();
@@ -52,43 +87,72 @@ test("owner enrolls MFA; password-only admin and direct API are blocked until ve
   ).toBeVisible();
   await page.getByLabel("Authenticator code", { exact: true }).fill("000000");
   await page
-    .getByRole("button", { name: "Verify authenticator", exact: true })
+    .getByRole("button", { name: "Verify and continue", exact: true })
     .click();
   await expect(page.locator("main [role=alert]")).toContainText(
     "could not be verified",
   );
   await page.getByLabel("Authenticator code", { exact: true }).fill("123456");
   await page
-    .getByRole("button", { name: "Verify authenticator", exact: true })
+    .getByRole("button", { name: "Verify and continue", exact: true })
     .click();
-  await expect(
-    page.getByText("Authenticator verified.", { exact: false }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/admin\/orders$/);
   expect((await context.request.get("/api/admin/orders")).status()).toBe(200);
-  await signIn(context, owner, "aal1");
+  await context.clearCookies();
+  await page.goto("/login?next=/admin/orders");
+  await page
+    .getByLabel("Email address", { exact: true })
+    .fill("owner@example.invalid");
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("fixture-owner-password-123");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(/\/auth\/verify\?next=%2Fadmin%2Forders/);
+  await expect(
+    page.getByRole("heading", { name: "Verify your sign-in.", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".admin-shell")).toHaveCount(0);
   expect((await context.request.get("/api/admin/orders")).status()).toBe(428);
   const bypass = await context.request.get("/admin/orders", {
     headers: { "x-store-path": "/admin/security" },
     maxRedirects: 0,
   });
   expect(bypass.status()).toBe(307);
-  expect(bypass.headers().location).toContain("/admin/security");
+  expect(bypass.headers().location).toContain("/auth/verify");
   await page.goto("/admin/orders");
-  await expect(page).toHaveURL(/\/admin\/security\?next=/);
+  await expect(page).toHaveURL(/\/auth\/verify\?next=/);
   await expect(
     page.getByLabel("Authenticator code", { exact: true }),
   ).toBeVisible();
+  await page.screenshot({
+    path: ".tools/owner-verification-mobile.png",
+    fullPage: true,
+  });
+  await page.getByLabel("Authenticator code", { exact: true }).fill("000000");
+  await page
+    .getByRole("button", { name: "Verify and continue", exact: true })
+    .click();
+  await expect(page.locator("main [role=alert]")).toContainText(
+    "could not be verified",
+  );
+  await expect(page).toHaveURL(/\/auth\/verify\?next=/);
   await page.getByLabel("Authenticator code", { exact: true }).fill("123456");
   await page
-    .getByRole("button", { name: "Verify authenticator", exact: true })
+    .getByRole("button", { name: "Verify and continue", exact: true })
     .click();
-  await expect(
-    page.getByRole("link", { name: "Continue to dashboard", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("link", { name: "Continue to dashboard", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/admin\/orders$/);
+});
+
+test("verification cannot be used by guests or customers and does not accept external return URLs", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/auth/verify?next=https://evil.example");
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
+  await signIn(context, "c0d00000-0000-4000-8000-000000000002", "aal1");
+  await page.goto("/auth/verify?next=/admin/orders");
+  await expect(page).toHaveURL(/\/account$/);
+  expect((await context.request.get("/api/admin/security")).status()).toBe(403);
 });
 test("distributed login throttling counts attempts across separate clients", async ({
   playwright,

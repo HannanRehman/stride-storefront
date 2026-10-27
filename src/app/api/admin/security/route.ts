@@ -19,7 +19,7 @@ export async function GET() {
       .filter((f) => f.factor_type === "totp" && f.status === "verified")
       .map((f) => ({ id: f.id, name: f.friendly_name || "Authenticator" }));
     let events: unknown[] = [];
-    if (!mfaRequired || data.currentLevel === "aal2") {
+    if (data.currentLevel === "aal2") {
       const result = await client
         .from("security_events")
         .select("id,kind,entity_id,created_at")

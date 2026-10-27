@@ -3,6 +3,7 @@ import { SignOut } from "@/components/account-forms";
 import { ownerPage } from "@/lib/admin-server";
 import { AdminNavigation } from "@/components/admin/navigation";
 import { headers } from "next/headers";
+import { safeAdminNext } from "@/lib/account-validation";
 import "./admin.css";
 export const metadata = {
   title: "Owner dashboard",
@@ -15,9 +16,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const path = (await headers()).get("x-store-path");
-  const { session, error } = await ownerPage(
-    path === "/admin/security" ? path : "/admin",
-  );
+  const { session, error } = await ownerPage(safeAdminNext(path));
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">

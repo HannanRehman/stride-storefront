@@ -307,6 +307,11 @@ const server = createServer(async (request, response) => {
               400,
             );
       if (
+        input.email === "owner@example.invalid" &&
+        input.password === "fixture-owner-password-123"
+      )
+        return send(authSession(owner));
+      if (
         input.email === "customer@example.invalid" &&
         input.password === fixturePassword
       )
@@ -536,6 +541,7 @@ const child = spawn(
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "fixture-key",
       NEXT_PUBLIC_SITE_URL: "http://localhost:3101",
       AUTH_EMAIL_ENABLED: "true",
+      STOREFRONT_TEST_MODE: "checkout",
       SECURITY_RPC_SECRET: "fixture-security-secret-not-for-production",
     },
   },

@@ -4,6 +4,7 @@ import {
   emailField,
   passwordField,
   safeNext,
+  safeAdminNext,
 } from "../../src/lib/account-validation";
 describe("account input boundaries", () => {
   it("keeps return URLs on allowed local pages", () => {
@@ -18,6 +19,21 @@ describe("account input boundaries", () => {
       expect(safeNext(path)).toBe("/account");
     expect(safeNext("/favorites")).toBe("/favorites");
     expect(safeNext("/account/addresses")).toBe("/account/addresses");
+    expect(safeAdminNext("/admin/orders?status=pending")).toBe(
+      "/admin/orders?status=pending",
+    );
+    for (const path of [
+      "https://evil.example",
+      "//evil.example",
+      "/account",
+      "/auth/verify",
+      "/administrator",
+      "/admin/../account",
+      "/admin/%2e%2e/account",
+      "/admin/%2f%2fevil.example",
+      undefined,
+    ])
+      expect(safeAdminNext(path)).toBe("/admin");
   });
   it("validates email and password without altering passwords", () => {
     expect(emailField(" User@Example.com ")).toBe("user@example.com");

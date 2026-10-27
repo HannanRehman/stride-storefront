@@ -5,6 +5,7 @@ const owner = "c0d00000-0000-4000-8000-000000000001";
 async function signIn(context: BrowserContext) {
   const payload = {
     sub: owner,
+    aal: "aal2",
     aud: "authenticated",
     role: "authenticated",
     exp: Math.floor(Date.now() / 1000) + 3600,

@@ -37,7 +37,7 @@ export function AuthForm({
       const response = await fetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, next: safeNext(next) }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);

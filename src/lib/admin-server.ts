@@ -39,28 +39,24 @@ export async function ownerIdentity() {
 }
 export async function ownerClient() {
   const session = await ownerIdentity();
-  if (session.mfaRequired) {
-    const { data, error } =
-      await session.client.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (error || data?.currentLevel !== "aal2")
-      throw new AdminError(
-        "Verify your authenticator in Security before using the owner dashboard.",
-        428,
-      );
-  }
+  const { data, error } =
+    await session.client.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (error || data?.currentLevel !== "aal2")
+    throw new AdminError(
+      "Verify your authenticator before using the owner dashboard.",
+      428,
+    );
   return session;
 }
 export async function ownerPage(next = "/admin") {
   try {
     return {
-      session: await (next === "/admin/security"
-        ? ownerIdentity()
-        : ownerClient()),
+      session: await ownerClient(),
       error: null,
     };
   } catch (error) {
     if (error instanceof AdminError && error.status === 428)
-      redirect(`/admin/security?next=${encodeURIComponent(next)}`);
+      redirect(`/auth/verify?next=${encodeURIComponent(next)}`);
     if (error instanceof AdminError && error.status === 401)
       redirect(`/login?next=${encodeURIComponent(next)}`);
     return {

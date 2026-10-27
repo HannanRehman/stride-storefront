@@ -165,6 +165,7 @@ try {
   });
   for (const path of [
     "/admin/content",
+    "/auth/verify",
     "/admin/orders",
     "/account/orders",
     "/account/requests",

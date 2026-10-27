@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
-import { useSearchParams } from "next/navigation";
-import { safeNext } from "@/lib/account-validation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { safeAdminNext } from "@/lib/account-validation";
 type Status = {
   required: boolean;
   level: string | null;
@@ -10,7 +10,12 @@ type Status = {
   events: { id: string; kind: string; entity_id: string; created_at: string }[];
   gatewayConfigured: boolean;
 };
-export function OwnerSecurity() {
+export function OwnerSecurity({
+  verification = false,
+}: {
+  verification?: boolean;
+}) {
+  const router = useRouter();
   const [status, setStatus] = useState<Status | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -22,7 +27,7 @@ export function OwnerSecurity() {
     } | null>(null),
     [factorId, setFactor] = useState(""),
     [code, setCode] = useState("");
-  const next = safeNext(useSearchParams().get("next") || "/admin");
+  const next = safeAdminNext(useSearchParams().get("next"));
   useEffect(() => {
     const c = new AbortController();
     fetch("/api/admin/security", { cache: "no-store", signal: c.signal })
@@ -64,6 +69,11 @@ export function OwnerSecurity() {
       else {
         setSetup(null);
         setCode("");
+        if (verification) {
+          router.replace(next);
+          router.refresh();
+          return;
+        }
         setReload((n) => n + 1);
       }
     } catch (e) {
@@ -83,25 +93,27 @@ export function OwnerSecurity() {
           {error}
         </p>
       )}
-      <button
-        className="order-link-button"
-        type="button"
-        disabled={busy}
-        onClick={() => setReload((n) => n + 1)}
-      >
-        Reload security
-      </button>
+      {(!verification || error) && (
+        <button
+          className="order-link-button"
+          type="button"
+          disabled={busy}
+          onClick={() => setReload((n) => n + 1)}
+        >
+          {verification ? "Reload verification" : "Reload security"}
+        </button>
+      )}
       {!status ? (
         <p role="status">Loading security…</p>
       ) : (
         <>
           <section className="admin-editor-section">
-            <h2>Two-factor authentication</h2>
+            {!verification && <h2>Two-factor authentication</h2>}
             <p>
               {status.required
                 ? status.level === "aal2"
                   ? "Authenticator verified. Owner access requires two factors."
-                  : "Verify your authenticator to continue to the owner dashboard."
+                  : "Enter the six-digit code from your authenticator app to continue."
                 : "Set up an authenticator to require a second factor for your owner account."}
             </p>
             {!status.required && !setup && !status.factors.length && (
@@ -167,14 +179,19 @@ export function OwnerSecurity() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                     required
+                    autoFocus={verification}
                   />
                 </label>
                 <button className="admin-primary" disabled={busy} type="submit">
-                  {busy ? "Verifying…" : "Verify authenticator"}
+                  {busy
+                    ? "Verifying…"
+                    : verification
+                      ? "Verify and continue"
+                      : "Verify authenticator"}
                 </button>
               </form>
             )}
-            {status.required && status.level === "aal2" && (
+            {!verification && status.required && status.level === "aal2" && (
               <Link
                 className="admin-primary"
                 href={next === "/admin/security" ? "/admin" : next}
@@ -192,21 +209,24 @@ export function OwnerSecurity() {
                 </p>
               )}
           </section>
-          <section className="admin-editor-section">
-            <h2>Security status</h2>
-            <p>
-              Shared abuse protection:{" "}
-              {status.gatewayConfigured
-                ? "Configured"
-                : "Configuration required"}
-              . This page does not enable email alerts or change your password.
-            </p>
-            <p>
-              Security history records owner changes and rate-limit alerts
-              without delivery addresses, passwords or setup keys.
-            </p>
-          </section>
-          {(!status.required || status.level === "aal2") && (
+          {!verification && (
+            <section className="admin-editor-section">
+              <h2>Security status</h2>
+              <p>
+                Shared abuse protection:{" "}
+                {status.gatewayConfigured
+                  ? "Configured"
+                  : "Configuration required"}
+                . This page does not enable email alerts or change your
+                password.
+              </p>
+              <p>
+                Security history records owner changes and rate-limit alerts
+                without delivery addresses, passwords or setup keys.
+              </p>
+            </section>
+          )}
+          {!verification && status.level === "aal2" && (
             <section className="admin-editor-section">
               <h2>Recent security activity</h2>
               {status.events.some((e) => e.kind === "request_limit") && (

@@ -50,5 +50,5 @@ const server = createServer(async (request, response) => {
   return send({ message: "Unknown isolated fixture request", path: url.pathname }, 404);
 });
 await new Promise(resolve => server.listen(54329, "127.0.0.1", resolve));
-const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--hostname", "localhost", "--port", "3100"], { stdio: "inherit", env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54329", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "fixture-publishable-key", NEXT_PUBLIC_SITE_URL: "http://localhost:3100", AUTH_EMAIL_ENABLED: "false" } });
+const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--hostname", "localhost", "--port", "3100"], { stdio: "inherit", env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54329", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "fixture-publishable-key", NEXT_PUBLIC_SITE_URL: "http://localhost:3100", STOREFRONT_TEST_MODE: "admin", AUTH_EMAIL_ENABLED: "false" } });
 const stop = () => { child.kill(); server.close(); }; process.on("SIGTERM", stop); process.on("SIGINT", stop); child.on("exit", code => { server.close(); process.exit(code || 0); });

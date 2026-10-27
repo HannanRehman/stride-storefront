@@ -7,6 +7,7 @@ const owner = "c0d00000-0000-4000-8000-000000000001",
 async function signIn(context: BrowserContext, sub = owner) {
   const payload = {
     sub,
+    aal: sub === owner ? "aal2" : "aal1",
     aud: "authenticated",
     exp: Math.floor(Date.now() / 1000) + 3600,
     iat: Math.floor(Date.now() / 1000),

@@ -16,6 +16,13 @@ export function safeNext(value: unknown) {
     ? value
     : "/account";
 }
+export function safeAdminNext(value: unknown) {
+  const url = new URL(safeNext(value), "https://store.invalid");
+  return /^\/admin(?:\/|$)/.test(url.pathname) &&
+    !/%(?:2f|5c)/i.test(url.pathname)
+    ? url.pathname + url.search
+    : "/admin";
+}
 export function textField(
   value: unknown,
   label: string,

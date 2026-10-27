@@ -4,6 +4,8 @@ October 27, 2026. Authenticator setup, MFA enforcement, shared database request 
 
 ## Owner two-factor setup
 
+Local follow-up: [the dedicated sign-in verification flow](OWNER_MFA_SIGNIN.md) replaces the previous redirect into Security. Once that change is deployed, open an admin page and complete first-time setup or code verification on `/auth/verify`; the portal and Security history open only afterward. The steps below describe enrollment, not an authorization to change another owner's factors.
+
 1. Deploy the new security UI before enrolling a genuine owner. Local development uses the same hosted membership: enrolling locally would also enable the requirement on the live database, while the old deployed UI has no verification screen. Until the new UI is deployed, use only the disposable browser fixtures for MFA testing.
 2. Sign in as an owner and open `/admin/security`.
 3. Select **Set up authenticator**, scan the private QR with an authenticator app, and enter its six-digit code. No SMS provider or paid service is required by this implementation.

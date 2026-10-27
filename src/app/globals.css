@@ -2348,6 +2348,98 @@ button {
   padding-bottom: 90px;
   min-height: 650px;
 }
+.owner-verification {
+  min-height: 100svh;
+  padding: 28px clamp(20px, 5vw, 72px) 60px;
+}
+.owner-verification > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.verification-card {
+  max-width: 440px;
+  margin: clamp(45px, 10vh, 110px) auto 0;
+}
+.verification-progress,
+.verification-note {
+  font-size: 13px;
+  color: #616165;
+  line-height: 1.6;
+}
+.verification-card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(44px, 8vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin: 20px 0;
+}
+.verification-intro {
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+.verification-note {
+  margin-top: 30px;
+}
+.mfa-gate .admin-editor-section > p {
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.mfa-gate .mfa-form,
+.mfa-gate .mfa-form label {
+  display: grid;
+  gap: 12px;
+}
+.mfa-gate .mfa-form {
+  gap: 22px;
+}
+.mfa-gate input,
+.mfa-gate select {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid #b7b7b8;
+  border-radius: 4px;
+  background: #fff;
+  font: inherit;
+}
+.mfa-gate input {
+  font-size: 24px;
+  letter-spacing: 0.2em;
+}
+.mfa-gate .admin-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  width: 100%;
+  padding: 14px 22px;
+  border-radius: 28px;
+  background: #111;
+  color: #fff;
+  font-weight: 600;
+}
+.mfa-gate .admin-primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.mfa-gate .mfa-setup {
+  margin-bottom: 24px;
+}
+.mfa-gate .mfa-setup img {
+  display: block;
+  max-width: 100%;
+  margin: 20px auto;
+}
+.mfa-gate .mfa-setup p {
+  line-height: 1.6;
+}
+.mfa-gate .mfa-setup code {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 12px;
+}
 .auth-editorial {
   display: flex;
   flex-direction: column;

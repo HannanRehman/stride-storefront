@@ -3,6 +3,12 @@ const project = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL)
   : null;
 const config: NextConfig = {
+  // Keep disposable browser fixtures separate from an owner's running preview.
+  distDir: ["checkout", "admin"].includes(
+    process.env.STOREFRONT_TEST_MODE || "",
+  )
+    ? `.tools/next-${process.env.STOREFRONT_TEST_MODE}`
+    : undefined,
   poweredByHeader: false,
   devIndicators: false,
   headers() {

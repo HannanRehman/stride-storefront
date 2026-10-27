@@ -1,7 +1,13 @@
 import { cookies } from "next/headers";
 import { accountClient, authConfigured } from "@/lib/supabase-server";
 import { body, json } from "@/lib/account-http";
-import { emailField, passwordField, textField } from "@/lib/account-validation";
+import {
+  emailField,
+  passwordField,
+  textField,
+  safeAdminNext,
+  safeNext,
+} from "@/lib/account-validation";
 import { sharedLimit, SecurityError } from "@/lib/security-server";
 export async function POST(
   request: Request,
@@ -113,7 +119,7 @@ export async function POST(
         ? (input.password as string)
         : passwordField(input.password);
     if (action === "login") {
-      const { error } = await client.auth.signInWithPassword({
+      const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
       });
@@ -125,7 +131,25 @@ export async function POST(
           },
           400,
         );
-      return json({ ok: true });
+      const destination = safeNext(input.next);
+      if (/^\/admin(?:\/|\?|$)/.test(destination) && data.user) {
+        const membership = await client
+          .from("store_owners")
+          .select("user_id")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+        if (membership.error)
+          return json(
+            { error: "Owner access could not be checked. Try again shortly." },
+            503,
+          );
+        if (membership.data)
+          return json({
+            ok: true,
+            redirect: `/auth/verify?next=${encodeURIComponent(safeAdminNext(destination))}`,
+          });
+      }
+      return json({ ok: true, redirect: destination });
     }
     if (process.env.AUTH_EMAIL_ENABLED !== "true")
       return json(
