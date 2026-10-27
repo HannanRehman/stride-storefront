@@ -7,6 +7,7 @@ import {
   orderFailure,
 } from "@/lib/orders-server";
 import { json } from "@/lib/account-http";
+import { revalidatePath } from "next/cache";
 export async function GET() {
   try {
     const { client } = await ownerClient();
@@ -42,6 +43,7 @@ export async function PATCH(request: Request) {
       p_updated_at: input.updatedAt,
     });
     if (error) databaseOrderError(error);
+    revalidatePath("/", "layout");
     return json({ ok: true });
   } catch (error) {
     return orderFailure(error);

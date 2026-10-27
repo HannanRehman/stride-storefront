@@ -5,7 +5,8 @@ import {
   databaseOrderError,
 } from "@/lib/orders-server";
 import { OrderError, uuid } from "@/lib/orders";
-import { json, allowAuth } from "@/lib/account-http";
+import { json } from "@/lib/account-http";
+import { sharedLimit, SecurityError } from "@/lib/security-server";
 export async function POST(request: Request) {
   try {
     const input = await orderBody(request);
@@ -28,8 +29,7 @@ export async function POST(request: Request) {
         );
       if (typeof input.website !== "string" || input.website)
         return json({ ok: true });
-      if (!allowAuth(request, "launch", input.email.toLowerCase().trim()))
-        throw new OrderError("Too many signup attempts. Try again later.", 429);
+      await sharedLimit(request, "launch", input.email);
       const { error } = await client.rpc("register_launch_interest", {
         p_email: input.email.trim().toLowerCase(),
         p_consent: true,
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     } else throw new OrderError("Choose a valid signup action.");
     return json({ ok: true });
   } catch (e) {
+    if (e instanceof SecurityError) return json({ error: e.message }, e.status);
     return orderFailure(e);
   }
 }

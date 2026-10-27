@@ -16,6 +16,7 @@ const owner = "c0d00000-0000-4000-8000-000000000001",
 await db.exec(`create role anon; create role authenticated; create role service_role;
 create schema auth; create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+    create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
 grant usage on schema auth,public to anon,authenticated,service_role;
 create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
 create table storage.objects(bucket_id text,name text);alter table storage.objects enable row level security;
@@ -28,6 +29,9 @@ for (const file of [
   "20261026225242_checkout_orders.sql",
   "20261026225251_store_operations.sql",
   "20261026225739_private_rpc_implementations.sql",
+  "20261027122354_owner_test_orders.sql",
+  "20261027124731_signed_in_test_orders.sql",
+  "20261027140044_security_hardening.sql",
 ])
   await db.exec(await readFile(`supabase/migrations/${file}`, "utf8"));
 await db.query("insert into auth.users(id) values($1),($2),($3)", [
@@ -39,6 +43,7 @@ await db.query("insert into public.store_owners values($1,now())", [owner]);
 let failAfterCommit = false,
   failSupport = false;
 let fixturePassword = "fixture-password-123";
+let mfaFactor = null;
 const authUser = (uid) => ({
   id: uid,
   aud: "authenticated",
@@ -46,9 +51,10 @@ const authUser = (uid) => ({
   email: uid === owner ? "owner@example.invalid" : "customer@example.invalid",
   app_metadata: {},
   user_metadata: {},
+  factors: uid === owner && mfaFactor ? [mfaFactor] : [],
   created_at: "2026-10-27T00:00:00Z",
 });
-function authSession(uid) {
+function authSession(uid, aal = "aal1") {
   const payload = {
     sub: uid,
     aud: "authenticated",
@@ -56,6 +62,7 @@ function authSession(uid) {
     iat: Math.floor(Date.now() / 1000),
     iss: "http://127.0.0.1:54328/auth/v1",
     role: "authenticated",
+    aal,
   };
   const jwt =
     Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString(
@@ -75,6 +82,10 @@ function authSession(uid) {
   };
 }
 async function reset() {
+  mfaFactor = null;
+  await db.exec(
+    "update public.store_owners set mfa_required=false;delete from public.security_events;delete from store_internal.rate_buckets;update store_internal.security_config set rpc_secret_hash=encode(sha256(convert_to('fixture-security-secret-not-for-production','UTF8')),'hex') where id;",
+  );
   await db.exec(
     "delete from public.email_jobs;delete from public.support_messages;delete from public.support_requests;delete from public.launch_interest;delete from public.site_content_revisions;update public.site_content set draft='{}',published='{}',version=0,published_at=null;delete from public.order_events;delete from public.store_orders;delete from public.customer_bag;delete from public.customer_favorites;delete from public.customer_guest_merges;delete from public.customer_profiles;delete from public.customer_addresses;delete from public.catalog_products;",
   );
@@ -92,6 +103,8 @@ async function reset() {
 }
 await reset();
 const rpc = {
+  consume_security_limit: ["p_action", "p_identity", "p_ip", "p_secret"],
+  enable_owner_mfa: [],
   quote_cod_order: ["p_items"],
   place_cod_order: ["p_request_id", "p_items", "p_address", "p_quote"],
   update_cod_order: [
@@ -121,6 +134,7 @@ const rpc = {
   unsubscribe_launch_interest: ["p_token"],
 };
 const tables = new Set([
+  "security_events",
   "catalog_products",
   "store_orders",
   "order_events",
@@ -151,6 +165,32 @@ const server = createServer(async (request, response) => {
       await reset();
       return send({ ok: true });
     }
+    if (url.pathname === "/test/owner-test-order") {
+      await db.exec(
+        await readFile("supabase/fixtures/owner-test-product.sql", "utf8"),
+      );
+      await db.exec(
+        "update public.checkout_settings set enabled=false;delete from public.customer_bag;",
+      );
+      return send({ ok: true });
+    }
+    if (url.pathname === "/test/pagination") {
+      // Historical records for read/pagination assertions only, never hosted.
+      await db.exec(`
+        insert into public.store_orders(user_id,request_id,request_fingerprint,items,address,subtotal_minor,shipping_minor,total_minor,is_test,created_at)
+        select '${customer}',gen_random_uuid(),'fixture-'||g,
+          '[{"productId":"checkout-hoodie","slug":"checkout-hoodie","name":"Pagination test set","color":"Navy","size":"M","quantity":1,"unit_minor":700000,"line_minor":700000}]'::jsonb,
+          '{"recipient":"Test Customer","phone":"03001234567","line1":"Test Street","line2":"","city":"Lahore","province":"Punjab","postal_code":"","country":"PK"}'::jsonb,
+          700000,25000,725000,true,now()-g*interval '1 minute' from generate_series(1,21) g;
+        insert into public.support_requests(user_id,request_key,kind,subject,created_at)
+          select '${customer}',gen_random_uuid(),'question','Audit request '||lpad(g::text,2,'0'),now()-g*interval '1 minute' from generate_series(1,21) g;
+        insert into public.support_messages(request_id,client_key,author_role,body,created_at)
+          select (select id from public.support_requests order by subject limit 1),gen_random_uuid(),'customer','Message '||g,now()-g*interval '1 minute' from generate_series(1,51) g;
+        insert into public.launch_interest(email,status,created_at)
+          select 'audit-'||g||'@example.invalid',case when g%2=0 then 'confirmed' else 'unconfirmed' end,now()-g*interval '1 minute' from generate_series(1,21) g;
+      `);
+      return send({ ok: true });
+    }
     if (url.pathname === "/test/operations")
       return send({
         audience: (await db.query("select * from public.launch_interest")).rows,
@@ -179,6 +219,12 @@ const server = createServer(async (request, response) => {
       );
       return send({ ok: true });
     }
+    if (url.pathname === "/test/last-unit") {
+      await db.exec(
+        'update public.catalog_products set sizes=\'[{"code":"M","stock":1}]\'::jsonb where id=\'checkout-hoodie\'',
+      );
+      return send({ ok: true });
+    }
     if (url.pathname === "/test/state") {
       return send({
         orders: (
@@ -189,19 +235,63 @@ const server = createServer(async (request, response) => {
         ).rows,
       });
     }
-    let uid = null;
+    let uid = null,
+      claims = {};
     try {
-      uid = JSON.parse(
+      claims = JSON.parse(
         Buffer.from(
           request.headers.authorization?.replace("Bearer ", "").split(".")[1] ||
             "",
           "base64url",
         ).toString(),
-      ).sub;
+      );
+      uid = claims.sub;
     } catch {
       /* Anonymous fixture. */
     }
     if (![owner, customer, other].includes(uid)) uid = null;
+    if (url.pathname === "/auth/v1/factors" && request.method === "POST") {
+      if (uid !== owner) return send({ message: "Not owner" }, 403);
+      mfaFactor = {
+        id: "5ec00000-0000-4000-8000-000000000010",
+        friendly_name: "Fixture authenticator",
+        factor_type: "totp",
+        status: "unverified",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      return send({
+        id: mfaFactor.id,
+        type: "totp",
+        totp: {
+          qr_code:
+            '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><rect width="220" height="220" fill="white"/><text x="20" y="110">Fixture QR</text></svg>',
+          secret: "FIXTURESETUPKEY",
+          uri: "otpauth://totp/Fixture?secret=FIXTURESETUPKEY",
+        },
+      });
+    }
+    if (url.pathname.startsWith("/auth/v1/factors/")) {
+      if (uid !== owner || !mfaFactor)
+        return send({ message: "Unknown factor" }, 400);
+      if (request.method === "DELETE") {
+        mfaFactor = null;
+        return send({ id: "removed" });
+      }
+      if (url.pathname.endsWith("/challenge"))
+        return send({
+          id: "5ec00000-0000-4000-8000-000000000011",
+          type: "totp",
+          expires_at: Math.floor(Date.now() / 1000) + 60,
+        });
+      if (url.pathname.endsWith("/verify")) {
+        const input = JSON.parse(Buffer.concat(chunks).toString());
+        if (input.code !== "123456")
+          return send({ message: "Invalid fixture code" }, 400);
+        mfaFactor.status = "verified";
+        return send(authSession(owner, "aal2"));
+      }
+    }
 
     if (url.pathname === "/auth/v1/token") {
       const input = JSON.parse(Buffer.concat(chunks).toString());
@@ -240,20 +330,7 @@ const server = createServer(async (request, response) => {
       return send(authUser(uid));
     }
     if (url.pathname === "/auth/v1/user")
-      return uid
-        ? send({
-            id: uid,
-            aud: "authenticated",
-            role: "authenticated",
-            email:
-              uid === owner
-                ? "owner@example.invalid"
-                : "customer@example.invalid",
-            app_metadata: {},
-            user_metadata: {},
-            created_at: "2026-10-27T00:00:00Z",
-          })
-        : send({ message: "No session" }, 401);
+      return uid ? send(authUser(uid)) : send({ message: "No session" }, 401);
     let operation = url.pathname.split("/").pop();
     const isRpc = url.pathname.startsWith("/rest/v1/rpc/");
     if (
@@ -266,6 +343,9 @@ const server = createServer(async (request, response) => {
       await tx.exec(`set local role ${uid ? "authenticated" : "anon"}`);
       await tx.query("select set_config('request.jwt.claim.sub',$1,true)", [
         uid || "",
+      ]);
+      await tx.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify(claims),
       ]);
       if (isRpc) {
         const body = JSON.parse(Buffer.concat(chunks).toString());
@@ -456,6 +536,7 @@ const child = spawn(
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "fixture-key",
       NEXT_PUBLIC_SITE_URL: "http://localhost:3101",
       AUTH_EMAIL_ENABLED: "true",
+      SECURITY_RPC_SECRET: "fixture-security-secret-not-for-production",
     },
   },
 );

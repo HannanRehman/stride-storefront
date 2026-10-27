@@ -51,6 +51,200 @@ async function fillAddress(page: Page) {
 test.beforeEach(async ({ request }) => {
   await request.post("http://127.0.0.1:54328/test/reset");
 });
+
+test("two customer requests contend for the final unit without overselling", async ({
+  browser,
+  request,
+}) => {
+  await request.post("http://127.0.0.1:54328/test/last-unit");
+  const a = await browser.newContext(),
+    b = await browser.newContext();
+  const headers = { Origin: "http://localhost:3101" };
+  const items = [{ productId: "checkout-hoodie", size: "M", quantity: 1 }];
+  const address = {
+    recipient: "Race Fixture",
+    phone: "03001234567",
+    line1: "Test Street",
+    city: "Lahore",
+    province: "Punjab",
+    country: "PK",
+  };
+  try {
+    await signIn(a, customer);
+    await signIn(b, other);
+    const quotes = await Promise.all(
+      [a, b].map(
+        async (c) =>
+          (
+            await (
+              await c.request.post("http://localhost:3101/api/checkout/quote", {
+                headers,
+                data: { items },
+              })
+            ).json()
+          ).quote,
+      ),
+    );
+    const results = await Promise.all(
+      [a, b].map((c, i) =>
+        c.request.post("http://localhost:3101/api/orders", {
+          headers,
+          data: {
+            customerId: i ? other : customer,
+            requestId: crypto.randomUUID(),
+            items,
+            address,
+            quote: quotes[i],
+          },
+        }),
+      ),
+    );
+    expect(results.map((r) => r.status()).sort()).toEqual([200, 409]);
+    const state = await (
+      await request.get("http://127.0.0.1:54328/test/state")
+    ).json();
+    expect(state.orders).toHaveLength(1);
+    expect(
+      state.products.find((p: { id: string }) => p.id === "checkout-hoodie")
+        .sizes[0].stock,
+    ).toBe(0);
+  } finally {
+    await a.close();
+    await b.close();
+  }
+});
+
+test("owner can rehearse checkout while public orders stay closed", async ({
+  page,
+  context,
+  request,
+}) => {
+  await request.post("http://127.0.0.1:54328/test/owner-test-order");
+  await signIn(context, owner);
+  await page.goto("/admin/orders");
+  await page.getByRole("link", { name: "Start a test order" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Checkout Test Set", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Sign in with any store account to try checkout.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "M", exact: true }).click();
+  await page.getByRole("button", { name: "Add to bag", exact: true }).click();
+  await expect(
+    page
+      .locator(".product-info [role=status]")
+      .filter({ hasText: "Added to your bag." }),
+  ).toBeVisible();
+  await page.goto("/checkout");
+  await expect(
+    page.getByRole("button", { name: "Place test order", exact: true }),
+  ).toBeEnabled();
+  await expect(page.getByText("PKR 7,250", { exact: true })).toBeVisible();
+  await fillAddress(page);
+  await page
+    .getByRole("button", { name: "Place test order", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Test order received." }),
+  ).toBeVisible();
+  const receiptPath = await page
+    .getByRole("link", { name: "View your order" })
+    .getAttribute("href");
+  await page.goto(receiptPath!.replace("/account/", "/admin/"));
+  await expect(
+    page.getByText("Test order. All statuses", { exact: false }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Mark confirmed", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "This changes a test order only.",
+  );
+  await page
+    .getByRole("button", { name: "Confirm status change", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Mark shipped", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Cancel order", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Confirm status change", exact: true })
+    .click();
+  await expect(
+    page.getByText("This order is complete.", { exact: false }),
+  ).toBeVisible();
+  await page.goto("/account/orders");
+  await expect(
+    page.getByText("Test order · no dispatch", { exact: true }),
+  ).toBeVisible();
+  await page.goto("/admin/orders");
+  await expect(
+    page.getByText("Public ordering is closed.", { exact: false }),
+  ).toBeVisible();
+});
+
+test("ordinary customer places a private test order while public checkout is closed", async ({
+  page,
+  context,
+  request,
+}) => {
+  await request.post("http://127.0.0.1:54328/test/owner-test-order");
+  expect(
+    (
+      await request.post("/api/checkout/quote", {
+        data: {},
+        headers: { Origin: "http://localhost:3101" },
+      })
+    ).status(),
+  ).toBe(401);
+  await signIn(context, customer);
+  await page.goto("/product/navy-hoodie-trouser-set");
+  await page
+    .getByRole("link", { name: "Try test checkout", exact: true })
+    .click();
+  await page.getByRole("button", { name: "M", exact: true }).click();
+  await page.getByRole("button", { name: "Add to bag", exact: true }).click();
+  await expect(
+    page
+      .locator(".product-info [role=status]")
+      .filter({ hasText: "Added to your bag." }),
+  ).toBeVisible();
+  await page.goto("/checkout");
+  await expect(
+    page.getByRole("button", { name: "Place test order", exact: true }),
+  ).toBeEnabled();
+  await fillAddress(page);
+  await page
+    .getByRole("button", { name: "Place test order", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Test order received." }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Manage this test order" }),
+  ).toHaveCount(0);
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        /\/api\/orders\/[a-f0-9-]{36}$/.test(response.url()) &&
+        response.status() === 200,
+    ),
+    page.getByRole("link", { name: "View your order" }).click(),
+  ]);
+  await expect(
+    page.getByText("Test order. All statuses", { exact: false }),
+  ).toBeVisible();
+  expect((await context.request.get("/api/admin/orders")).status()).toBe(403);
+  await signIn(context, other);
+  expect(
+    (
+      await context.request.get(`/api/orders/${page.url().split("/").pop()}`)
+    ).status(),
+  ).toBe(404);
+});
 test("owner controls launch explicitly and stale updates are rejected", async ({
   page,
   context,

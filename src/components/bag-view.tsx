@@ -6,6 +6,7 @@ import { useStore } from "@/components/store-provider";
 import { Button } from "@/components/ui/button";
 import { money } from "@/lib/utils";
 import { bagTotals } from "@/lib/bag-totals";
+import { shoppingState } from "@/lib/shopping-state";
 export function BagView() {
   const {
     bag,
@@ -14,11 +15,15 @@ export function BagView() {
     saving,
     syncError,
     user,
+    orderingOpen,
     updateQuantity,
     removeItem,
     moveToFavorites,
   } = useStore();
   const totals = bagTotals(bag, catalog);
+  const testBag =
+    bag.length > 0 &&
+    bag.every((item) => catalog.find((p) => p.id === item.productId)?.testOnly);
   return (
     <main id="main" className="bag-page section">
       <h1>Your bag</h1>
@@ -55,9 +60,10 @@ export function BagView() {
                     <p>{p.subtitle}</p>
                     <p>{p.color}</p>
                     <p>Size: {item.size}</p>
-                    {!p.orderable && (
-                      <p>Browsing item · unavailable for checkout</p>
-                    )}
+                    <p className="shopping-state">
+                      {shoppingState(p, orderingOpen).label} ·{" "}
+                      {shoppingState(p, orderingOpen).description}
+                    </p>
                     <div className="bag-line-bottom">
                       <div className="bag-quantity">
                         <button
@@ -148,11 +154,20 @@ export function BagView() {
               {user
                 ? "Your bag is saved to your account and syncs across devices."
                 : "Your bag is saved on this device."}{" "}
-              Checkout is available for eligible products once ordering opens.
-              Demo items cannot be purchased.
+              {testBag
+                ? "This is a test order. No payment or delivery takes place."
+                : "Checkout is available for eligible products once ordering opens. Demo items cannot be purchased."}
             </p>
+            {!user && (
+              <p className="checkout-signin-note">
+                Sign in is required to place an order. Your bag will be kept
+                when you sign in.
+              </p>
+            )}
             <Button asChild>
-              <Link href="/checkout">Continue to checkout</Link>
+              <Link href={user ? "/checkout" : "/login?next=/checkout"}>
+                {user ? "Continue to checkout" : "Sign in to checkout"}
+              </Link>
             </Button>
             <Button asChild variant="outline">
               <Link href="/shop/all">Continue exploring</Link>

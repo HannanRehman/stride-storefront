@@ -28,8 +28,8 @@ test("navy set has a complete PKR preview without unconfirmed shopping actions",
     ).toBeDisabled();
   }
   await expect(
-    page.getByRole("button", { name: "Availability coming soon" }),
-  ).toBeDisabled();
+    page.getByRole("link", { name: "Try test checkout" }),
+  ).toHaveAttribute("href", "/product/checkout-test-set");
   await expect(
     page.getByRole("button", { name: "Favorite", exact: true }),
   ).toHaveCount(0);

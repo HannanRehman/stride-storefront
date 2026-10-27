@@ -31,6 +31,101 @@ html:has(.admin-shell) {
 .admin-sidebar nav a {
   padding: 11px 0;
 }
+.admin-sidebar nav a[aria-current="page"] {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+.admin-menu-toggle {
+  display: none;
+}
+.content-section-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e5e5e5;
+  margin: 24px 0 12px;
+  overflow-x: auto;
+}
+.content-section-tabs button {
+  padding: 14px 18px;
+  min-height: 48px;
+  border-bottom: 2px solid transparent;
+  font-size: 14px;
+}
+.content-section-tabs button[aria-selected="true"] {
+  border-bottom-color: #111;
+  font-weight: 600;
+}
+.content-save-state {
+  min-height: 24px;
+  margin-bottom: 16px;
+}
+.content-save-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  padding: 16px 0;
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+  align-items: center;
+}
+.content-save-bar > span {
+  margin-right: auto;
+  font-size: 12px;
+  color: #616165;
+}
+.owner-security {
+  max-width: 860px;
+  margin-top: 24px;
+}
+.mfa-setup {
+  margin: 20px 0;
+}
+.mfa-setup img {
+  display: block;
+  max-width: 100%;
+  margin: 16px 0;
+}
+.mfa-setup code {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: 16px 0;
+}
+.mfa-form {
+  display: grid;
+  max-width: 320px;
+  gap: 16px;
+  margin: 20px 0;
+}
+.mfa-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+.mfa-form input,
+.mfa-form select {
+  min-height: 46px;
+  border: 1px solid #c9c9cd;
+  border-radius: 4px;
+  padding: 10px;
+  width: 100%;
+}
+.security-events {
+  list-style: none;
+  padding: 0;
+}
+.security-events li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 13px;
+}
+.security-events span {
+  color: #616165;
+}
 .admin-sidebar .admin-store-link {
   margin-top: 24px;
   border-top: 1px solid #e5e5e5;
@@ -429,10 +524,30 @@ html:has(.admin-shell) {
     font-size: 30px;
   }
   .admin-sidebar nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 12px;
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 8px;
+  }
+  .admin-sidebar nav[data-open="true"] {
+    display: flex;
+  }
+  .admin-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 48px;
+    border-bottom: 1px solid #e5e5e5;
+    text-align: left;
+    margin-top: 8px;
+  }
+  .admin-menu-toggle > span:last-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #616165;
   }
   .admin-sidebar .admin-store-link {
     border-top: 0;
@@ -447,6 +562,15 @@ html:has(.admin-shell) {
   }
   .admin-main {
     padding: 28px 20px;
+  }
+  .content-section-tabs {
+    gap: 0;
+  }
+  .content-section-tabs button {
+    flex: 1;
+    padding: 12px 8px;
+    font-size: 13px;
+    white-space: nowrap;
   }
   .admin-page-heading {
     align-items: start;

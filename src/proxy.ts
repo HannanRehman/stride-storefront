@@ -1,7 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const nextResponse = () => {
+    const forwarded = new Headers(request.headers);
+    forwarded.set("x-store-path", request.nextUrl.pathname);
+    return NextResponse.next({ request: { headers: forwarded } });
+  };
+  let response = nextResponse();
   response.headers.set("Cache-Control", "private, no-store");
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -17,7 +22,7 @@ export async function proxy(request: NextRequest) {
       getAll: () => request.cookies.getAll(),
       setAll: (values) => {
         values.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
+        response = nextResponse();
         response.headers.set("Cache-Control", "private, no-store");
         values.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),

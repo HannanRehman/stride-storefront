@@ -17,6 +17,7 @@ export async function generateMetadata({
   return {
     title: product?.name || "Product not found",
     description: product?.description,
+    ...(product?.testOnly ? { robots: { index: false, follow: false } } : {}),
     alternates: { canonical: `/product/${slug}` },
     openGraph: product
       ? {
@@ -47,31 +48,33 @@ export default async function Page({
   if (!product) notFound();
   const checkoutOpen = product.orderable ? await publicCheckoutOpen() : false;
   const base = siteBase();
-  const structured = product.orderable
-    ? {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: product.name,
-        description: product.description,
-        image: new URL(product.image, base).href,
-        ...(checkoutOpen
-          ? {
-              offers: {
-                "@type": "Offer",
-                url: new URL(`/product/${slug}`, base).href,
-                priceCurrency: product.currency,
-                price: (product.price / 100).toFixed(2),
-                availability: product.sizes.some((s) => s.stock > 0)
-                  ? "https://schema.org/InStock"
-                  : "https://schema.org/OutOfStock",
-              },
-            }
-          : {}),
-      }
-    : null;
+  const structured =
+    product.orderable && !product.testOnly
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          description: product.description,
+          image: new URL(product.image, base).href,
+          ...(checkoutOpen
+            ? {
+                offers: {
+                  "@type": "Offer",
+                  url: new URL(`/product/${slug}`, base).href,
+                  priceCurrency: product.currency,
+                  price: (product.price / 100).toFixed(2),
+                  availability: product.sizes.some((s) => s.stock > 0)
+                    ? "https://schema.org/InStock"
+                    : "https://schema.org/OutOfStock",
+                },
+              }
+            : {}),
+        }
+      : null;
   const related = catalog
     .filter(
       (p) =>
+        !p.testOnly &&
         p.id !== product.id &&
         (p.audience === product.audience ||
           (product.audience === "unisex" && p.audience !== "kids")) &&

@@ -15,6 +15,7 @@ import {
 import { SizeGuide } from "@/components/size-guide";
 import { money } from "@/lib/utils";
 import type { Product } from "@/lib/catalog";
+import { shoppingState } from "@/lib/shopping-state";
 export function ProductDetail({ product }: { product: Product }) {
   const {
     favorites,
@@ -24,6 +25,7 @@ export function ProductDetail({ product }: { product: Product }) {
     ready,
     saving,
     syncError,
+    orderingOpen,
   } = useStore();
   const [adding, setAdding] = useState(false);
   const [size, setSize] = useState("");
@@ -74,8 +76,10 @@ export function ProductDetail({ product }: { product: Product }) {
                 src={selectedImage.src}
                 alt={selectedImage.alt}
                 fill
-                preload
-                sizes="(max-width: 639px) 100vw, 58vw"
+                loading="eager"
+                fetchPriority="high"
+                quality={70}
+                sizes="(max-width: 639px) 100vw, (max-width: 1023px) calc(100vw - 96px), 55vw"
               />
               <span className="gallery-zoom icon-button">
                 <Maximize2 size={20} />
@@ -136,6 +140,9 @@ export function ProductDetail({ product }: { product: Product }) {
         <span className="product-badge">{product.badge}</span>
         <h1>{product.name}</h1>
         <p className="product-subtitle">{product.subtitle}</p>
+        <p className="shopping-state">
+          {shoppingState(product, orderingOpen).label}
+        </p>
         <div className="product-price">
           <span>{money(product.price, product.currency)}</span>
           {product.compareAt && (
@@ -151,6 +158,14 @@ export function ProductDetail({ product }: { product: Product }) {
             </>
           )}
         </div>
+        {product.testOnly && (
+          <p className="checkout-message">
+            Test product. Sign in with any store account to try checkout. PKR
+            7,000 is a simulated price; stock is for testing only. No parcel
+            will be sent or payment collected. Add this item to an otherwise
+            empty bag, then continue to checkout.
+          </p>
+        )}
         {product.preview && (
           <p className="product-notice">
             Temporary price for the complete set: one hoodie and one trouser.
@@ -219,25 +234,31 @@ export function ProductDetail({ product }: { product: Product }) {
           </p>
         )}
         <div className="purchase-actions">
-          <Button
-            onClick={add}
-            disabled={
-              product.preview ||
-              !ready ||
-              saving ||
-              adding ||
-              Boolean(syncError)
-            }
-            aria-busy={adding}
-          >
-            {product.preview
-              ? "Availability coming soon"
-              : adding
-                ? "Adding…"
-                : added
-                  ? "Add another"
-                  : "Add to bag"}
-          </Button>
+          {product.preview ? (
+            <Button asChild>
+              <Link href="/product/checkout-test-set">Try test checkout</Link>
+            </Button>
+          ) : (
+            <Button
+              onClick={add}
+              disabled={
+                product.preview ||
+                !ready ||
+                saving ||
+                adding ||
+                Boolean(syncError)
+              }
+              aria-busy={adding}
+            >
+              {product.preview
+                ? "Availability coming soon"
+                : adding
+                  ? "Adding…"
+                  : added
+                    ? "Add another"
+                    : "Add to bag"}
+            </Button>
+          )}
           {!product.preview && (
             <Button
               variant="outline"
@@ -307,9 +328,11 @@ export function ProductDetail({ product }: { product: Product }) {
           },
           {
             title: "Shipping & returns",
-            content: product.orderable
-              ? "When ordering is open, checkout shows the full PKR total including delivery within Pakistan. Cash is due on delivery. Orders require store confirmation. Read Shipping & returns before ordering."
-              : "This browsing item is not available for checkout. Adding it to your bag does not reserve stock or create an order.",
+            content: product.testOnly
+              ? "This is a test product for signed-in customers. No shipment, payment or order email is created. Delivery details, tracking and order statuses are used to rehearse the flow."
+              : product.orderable
+                ? "When ordering is open, checkout shows the full PKR total including delivery within Pakistan. Cash is due on delivery. Orders require store confirmation. Read Shipping & returns before ordering."
+                : "This browsing item is not available for checkout. Adding it to your bag does not reserve stock or create an order.",
           },
           {
             title: "Reviews",

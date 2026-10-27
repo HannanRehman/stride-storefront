@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { accountClient, authConfigured } from "@/lib/supabase-server";
-import { allowAuth, body, json } from "@/lib/account-http";
+import { body, json } from "@/lib/account-http";
 import { emailField, passwordField, textField } from "@/lib/account-validation";
+import { sharedLimit, SecurityError } from "@/lib/security-server";
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ action: string }> },
@@ -17,6 +18,10 @@ export async function POST(
     );
   try {
     const input = await body(request);
+    if (
+      !["login", "register", "recovery", "password", "logout"].includes(action)
+    )
+      return json({ error: "Choose a valid account action." }, 400);
     const client = await accountClient();
     if (action === "logout") {
       const { error } = await client.auth.signOut({ scope: "local" });
@@ -60,11 +65,11 @@ export async function POST(
     if (!["login", "register", "recovery"].includes(action))
       return json({ error: "Unknown account action." }, 404);
     const email = emailField(input.email);
-    if (!allowAuth(request, action, email))
-      return json(
-        { error: "Too many attempts. Wait a few minutes before trying again." },
-        429,
-      );
+    await sharedLimit(
+      request,
+      action as "login" | "register" | "recovery",
+      email,
+    );
     const site =
       process.env.NODE_ENV === "production"
         ? process.env.NEXT_PUBLIC_SITE_URL
@@ -165,7 +170,7 @@ export async function POST(
             ? error.message
             : "Could not complete your request. Please try again.",
       },
-      400,
+      error instanceof SecurityError ? error.status : 400,
     );
   }
 }

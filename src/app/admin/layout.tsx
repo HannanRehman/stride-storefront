@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { SignOut } from "@/components/account-forms";
 import { ownerPage } from "@/lib/admin-server";
+import { AdminNavigation } from "@/components/admin/navigation";
+import { headers } from "next/headers";
 import "./admin.css";
 export const metadata = {
   title: "Owner dashboard",
@@ -12,7 +14,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { session, error } = await ownerPage();
+  const path = (await headers()).get("x-store-path");
+  const { session, error } = await ownerPage(
+    path === "/admin/security" ? path : "/admin",
+  );
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
@@ -20,18 +25,7 @@ export default async function AdminLayout({
           stride.
         </Link>
         <p>Owner workspace</p>
-        <nav aria-label="Store management">
-          <Link href="/admin">Overview</Link>
-          <Link href="/admin/products">Products</Link>
-          <Link href="/admin/orders">Orders</Link>
-          <Link href="/admin/requests">Requests</Link>
-          <Link href="/admin/content">Content</Link>
-          <Link href="/admin/audience">Audience</Link>
-          <Link href="/admin/readiness">Launch readiness</Link>
-          <Link href="/" className="admin-store-link">
-            View storefront
-          </Link>
-        </nav>
+        <AdminNavigation />
         {session && (
           <div className="admin-identity">
             <span>{session.user.email}</span>

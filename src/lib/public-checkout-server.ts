@@ -8,6 +8,16 @@ export const publicCheckoutOpen = cache(async () => {
   try {
     const client = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) =>
+          fetch(input, {
+            ...init,
+            next: {
+              revalidate: process.env.NODE_ENV === "production" ? 60 : 0,
+              tags: ["public-checkout"],
+            },
+          }),
+      },
     });
     const { data, error } = await client
       .from("checkout_settings")

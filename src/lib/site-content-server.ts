@@ -13,6 +13,16 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   try {
     const client = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) =>
+          fetch(input, {
+            ...init,
+            next: {
+              revalidate: process.env.NODE_ENV === "production" ? 60 : 0,
+              tags: ["public-content"],
+            },
+          }),
+      },
     });
     const { data, error } = await client.rpc("read_site_content");
     if (error || !data) return defaultContent;

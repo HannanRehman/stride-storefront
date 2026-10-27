@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { useStore } from "@/components/store-provider";
 import type { Product } from "@/lib/catalog";
 import { money } from "@/lib/utils";
+import { shoppingState } from "@/lib/shopping-state";
 export function ProductCard({
   product,
   priority = false,
@@ -12,7 +13,8 @@ export function ProductCard({
   product: Product;
   priority?: boolean;
 }) {
-  const { favorites, toggleFavorite, ready, saving, syncError } = useStore();
+  const { favorites, toggleFavorite, ready, saving, syncError, orderingOpen } =
+    useStore();
   const saved = favorites.includes(product.id);
   return (
     <article className="product-card">
@@ -28,7 +30,8 @@ export function ProductCard({
             alt={`${product.name} in ${product.color}`}
             fill
             sizes="(max-width: 639px) 48vw, (max-width: 1023px) 45vw, 30vw"
-            preload={priority}
+            loading={priority ? "eager" : "lazy"}
+            quality={70}
           />
         </Link>
         {!product.preview && (
@@ -44,6 +47,9 @@ export function ProductCard({
         )}
       </div>
       <Link href={`/product/${product.slug}`} className="product-card-info">
+        <span className="shopping-state">
+          {shoppingState(product, orderingOpen).label}
+        </span>
         {product.badge && (
           <span
             className={

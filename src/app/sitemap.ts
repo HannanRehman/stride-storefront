@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ["shoes", "clothing"].map((c) => `/${a}/${c}`),
     ),
     ...["pace", "court", "everyday", "motion"].map((c) => `/collections/${c}`),
-    ...catalog.map((p) => `/product/${p.slug}`),
+    ...catalog.filter((p) => !p.testOnly).map((p) => `/product/${p.slug}`),
   ];
   return routes.map((route) => ({ url: `${base}${route}` }));
 }

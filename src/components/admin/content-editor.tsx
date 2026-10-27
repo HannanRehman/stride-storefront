@@ -59,7 +59,15 @@ const groups: {
     ],
   },
 ];
+const editorSections = [
+  ["campaign", "Campaign"],
+  ["contact", "Contact"],
+  ["policies", "Policies"],
+  ["launch", "Launch"],
+] as const;
+type EditorSection = (typeof editorSections)[number][0];
 export function ContentEditor() {
+  const [section, setSection] = useState<EditorSection>("campaign");
   const [record, setRecord] = useState<ContentRecord | null>(null),
     [form, setForm] = useState(defaultContent),
     [baseline, setBaseline] = useState(JSON.stringify(defaultContent)),
@@ -203,91 +211,160 @@ export function ContentEditor() {
         </p>
       )}
       {record && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void action("save");
-          }}
-        >
-          <fieldset
-            disabled={busy || uncertain}
-            className="content-editor-fields"
+        <>
+          <div
+            className="content-section-tabs"
+            role="tablist"
+            aria-label="Content sections"
+            onKeyDown={(e) => {
+              const index = editorSections.findIndex(([id]) => id === section);
+              const next =
+                e.key === "ArrowRight"
+                  ? (index + 1) % editorSections.length
+                  : e.key === "ArrowLeft"
+                    ? (index + editorSections.length - 1) %
+                      editorSections.length
+                    : e.key === "Home"
+                      ? 0
+                      : e.key === "End"
+                        ? editorSections.length - 1
+                        : -1;
+              if (next < 0) return;
+              e.preventDefault();
+              setSection(editorSections[next][0]);
+              document
+                .getElementById(`content-tab-${editorSections[next][0]}`)
+                ?.focus();
+            }}
           >
-            {groups.map((g) => (
-              <section key={g.title} className="admin-editor-section">
-                <h2>{g.title}</h2>
-                {g.title === "Store information" && (
-                  <p>
-                    Plain text only. Publish the actual policies and staffed
-                    contact details before opening orders. Empty fields keep the
-                    prelaunch information.
-                  </p>
-                )}
-                <div className="content-field-grid">
-                  {g.fields.map(([key, label]) => (
-                    <label
-                      key={key}
-                      className={
-                        contentLimits[key] > 300 ? "content-field-wide" : ""
-                      }
-                    >
-                      {label}
-                      {contentLimits[key] > 300 ? (
-                        <textarea
-                          rows={5}
-                          maxLength={contentLimits[key]}
-                          value={form[key]}
-                          onChange={(e) =>
-                            setForm({ ...form, [key]: e.target.value })
-                          }
-                        />
-                      ) : (
-                        <input
-                          maxLength={contentLimits[key]}
-                          value={form[key]}
-                          onChange={(e) =>
-                            setForm({ ...form, [key]: e.target.value })
-                          }
-                        />
-                      )}
-                    </label>
-                  ))}
-                </div>
-              </section>
-            ))}
-            <section className="admin-editor-section">
-              <h2>Launch interest</h2>
-              <label className="order-checkbox">
-                <input
-                  type="checkbox"
-                  checked={form.launchEnabled}
-                  onChange={(e) =>
-                    setForm({ ...form, launchEnabled: e.target.checked })
-                  }
-                />
-                Show the launch interest form
-              </label>
-              <p>
-                Signups require explicit permission. Emails stay inactive until
-                sender credentials and the final brand are configured. Turning
-                this on does not enable checkout.
-              </p>
-            </section>
-            <div className="content-editor-actions">
-              <button className="admin-primary" type="submit">
-                {busy ? "Saving…" : "Save draft"}
-              </button>
+            {editorSections.map(([id, label]) => (
               <button
-                className="admin-secondary"
                 type="button"
-                disabled={dirty}
-                onClick={() => setConfirm(true)}
+                role="tab"
+                id={`content-tab-${id}`}
+                key={id}
+                aria-selected={section === id}
+                aria-controls="content-section-panel"
+                tabIndex={section === id ? 0 : -1}
+                onClick={() => setSection(id)}
               >
-                Publish saved draft
+                {label}
               </button>
-            </div>
-          </fieldset>
-        </form>
+            ))}
+          </div>
+          <p className="content-save-state" aria-live="polite">
+            {dirty
+              ? "Unsaved changes across your content sections."
+              : "All sections match the saved draft."}
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void action("save");
+            }}
+          >
+            <fieldset
+              disabled={busy || uncertain}
+              className="content-editor-fields"
+            >
+              <div
+                role="tabpanel"
+                id="content-section-panel"
+                aria-labelledby={`content-tab-${section}`}
+                tabIndex={0}
+              >
+                {groups.map((g) => (
+                  <section
+                    key={g.title}
+                    className="admin-editor-section"
+                    hidden={
+                      section !==
+                      (g.title === "Customer contact"
+                        ? "contact"
+                        : g.title === "Store information"
+                          ? "policies"
+                          : "campaign")
+                    }
+                  >
+                    <h2>{g.title}</h2>
+                    {g.title === "Store information" && (
+                      <p>
+                        Plain text only. Publish the actual policies and staffed
+                        contact details before opening orders. Empty fields keep
+                        the prelaunch information.
+                      </p>
+                    )}
+                    <div className="content-field-grid">
+                      {g.fields.map(([key, label]) => (
+                        <label
+                          key={key}
+                          className={
+                            contentLimits[key] > 300 ? "content-field-wide" : ""
+                          }
+                        >
+                          {label}
+                          {contentLimits[key] > 300 ? (
+                            <textarea
+                              rows={5}
+                              maxLength={contentLimits[key]}
+                              value={form[key]}
+                              onChange={(e) =>
+                                setForm({ ...form, [key]: e.target.value })
+                              }
+                            />
+                          ) : (
+                            <input
+                              maxLength={contentLimits[key]}
+                              value={form[key]}
+                              onChange={(e) =>
+                                setForm({ ...form, [key]: e.target.value })
+                              }
+                            />
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+                <section
+                  className="admin-editor-section"
+                  hidden={section !== "launch"}
+                >
+                  <h2>Launch interest</h2>
+                  <label className="order-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={form.launchEnabled}
+                      onChange={(e) =>
+                        setForm({ ...form, launchEnabled: e.target.checked })
+                      }
+                    />
+                    Show the launch interest form
+                  </label>
+                  <p>
+                    Signups require explicit permission. Emails stay inactive
+                    until sender credentials and the final brand are configured.
+                    Turning this on does not enable checkout.
+                  </p>
+                </section>
+              </div>
+              <div className="content-editor-actions content-save-bar">
+                <span>{dirty ? "Unsaved changes" : "Saved draft"}</span>
+                <button className="admin-primary" type="submit">
+                  {busy ? "Saving…" : "Save draft"}
+                </button>
+                <button
+                  className="admin-secondary"
+                  type="button"
+                  disabled={dirty}
+                  onClick={() => setConfirm(true)}
+                >
+                  Publish saved draft
+                </button>
+              </div>
+            </fieldset>
+          </form>
+        </>
       )}
       {revisions.length > 0 && (
         <section className="content-revisions">

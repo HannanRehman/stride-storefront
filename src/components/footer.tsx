@@ -57,9 +57,23 @@ export function Footer({ launchEnabled = false }: { launchEnabled?: boolean }) {
           <Link href="/launch">Hear about the first launch</Link>
         </p>
       )}
-      <div className="footer-columns">
+      <div className="footer-columns footer-desktop">
         {groups.map((group) => (
-          <details key={group.title} open>
+          <section key={group.title}>
+            <h3>{group.title}</h3>
+            <div className="footer-link-list">
+              {group.links.map(([label, href]) => (
+                <Link key={href} href={href}>
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+      <div className="footer-columns footer-mobile">
+        {groups.map((group) => (
+          <details key={group.title} open={group.title === "Help"}>
             <summary>{group.title}</summary>
             <div>
               {group.links.map(([label, href]) => (

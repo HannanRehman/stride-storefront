@@ -11,6 +11,7 @@ export function CampaignHero({ content: c }: { content: SiteContent }) {
         alt={c.heroAlt}
         fill
         preload
+        quality={70}
         sizes="100vw"
         className="hero-image"
       />

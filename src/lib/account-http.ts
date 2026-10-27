@@ -1,5 +1,4 @@
 import "server-only";
-import { createHash } from "node:crypto";
 export function json(data: unknown, status = 200) {
   return Response.json(data, {
     status,
@@ -21,27 +20,29 @@ export async function body(request: Request) {
   assertSameOrigin(request);
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     throw new Error("Send a JSON request.");
-  const raw = await request.text();
-  if (raw.length > 20000) throw new Error("Request is too large.");
+  const reader = request.body?.getReader();
+  if (!reader) throw new Error("Send a JSON request.");
+  const parts: Uint8Array[] = [];
+  let size = 0;
+  while (true) {
+    const part = await reader.read();
+    if (part.done) break;
+    size += part.value.byteLength;
+    if (size > 20000) {
+      await reader.cancel();
+      throw new Error("Request is too large.");
+    }
+    parts.push(part.value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const part of parts) {
+    bytes.set(part, offset);
+    offset += part.length;
+  }
+  const raw = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   const data = JSON.parse(raw);
   if (!data || typeof data !== "object" || Array.isArray(data))
     throw new Error("Invalid request.");
   return data as Record<string, unknown>;
-}
-// Additional per-instance throttle; Supabase Auth enforces provider-side limits.
-const attempts = new Map<string, { count: number; until: number }>();
-export function allowAuth(request: Request, action: string, email: string) {
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  const key = createHash("sha256")
-    .update(`${ip}:${action}:${email}`)
-    .digest("hex");
-  const now = Date.now();
-  for (const [id, value] of attempts)
-    if (value.until < now) attempts.delete(id);
-  if (attempts.size > 10000) return false;
-  const value = attempts.get(key) || { count: 0, until: now + 600000 };
-  value.count += 1;
-  attempts.set(key, value);
-  return value.count <= 8;
 }

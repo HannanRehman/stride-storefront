@@ -13,6 +13,7 @@ try {
     create role anon; create role authenticated; create role service_role;
     create schema auth; create table auth.users (id uuid primary key,email text,email_confirmed_at timestamptz);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+    create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
     grant usage on schema auth, public to anon, authenticated, service_role;
     create schema storage;
     create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
@@ -30,10 +31,15 @@ try {
     "supabase/migrations/20261026225242_checkout_orders.sql",
     "supabase/migrations/20261026225251_store_operations.sql",
     "supabase/migrations/20261026225739_private_rpc_implementations.sql",
+    "supabase/migrations/20261027122354_owner_test_orders.sql",
+    "supabase/migrations/20261027124731_signed_in_test_orders.sql",
+    "supabase/migrations/20261027140044_security_hardening.sql",
     "supabase/tests/checkout_orders.sql",
+    "supabase/tests/owner_test_orders.sql",
     "supabase/tests/store_operations.sql",
     "supabase/tests/owner_products.sql",
     "supabase/tests/customer_accounts.sql",
+    "supabase/tests/security_hardening.sql",
   ]) {
     await db.exec(await readFile(file, "utf8"));
     console.log(`Passed: ${file}`);

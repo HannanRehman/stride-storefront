@@ -13,6 +13,7 @@ export type Product = {
   currency?: "USD" | "PKR";
   preview?: boolean;
   orderable?: boolean;
+  testOnly?: boolean;
   compareAt?: number;
   image: string;
   images?: { src: string; alt: string; label: string }[];
@@ -217,6 +218,7 @@ const normalize = (s: string) =>
     .toLowerCase();
 export function filterProducts(source: Product[], filters: CatalogFilters) {
   const results = source.filter((p) => {
+    if (p.testOnly) return false;
     if (
       filters.audience &&
       p.audience !== filters.audience &&

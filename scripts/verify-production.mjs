@@ -77,6 +77,36 @@ try {
     root.headers.get("x-frame-options") !== "SAMEORIGIN"
   )
     throw new Error("Missing security headers");
+  const sitemapResponse = await fetch(base + "/sitemap.xml");
+  expect(sitemapResponse.status).toBe(200);
+  expect(sitemapResponse.headers.get("content-type")).toContain("xml");
+  const sitemap = await sitemapResponse.text();
+  const locations = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(
+    (match) => new URL(match[1]),
+  );
+  expect(locations.length).toBeGreaterThan(0);
+  expect(new Set(locations.map((url) => url.href)).size).toBe(locations.length);
+  const publicPaths = locations.map((url) => url.pathname);
+  expect(publicPaths).toEqual(
+    expect.arrayContaining([
+      "/",
+      "/shop/clothing",
+      "/product/navy-hoodie-trouser-set",
+    ]),
+  );
+  for (const url of locations) {
+    expect(url.origin).toBe(new URL(canonical).origin);
+    expect(url.search).toBe("");
+    expect(url.pathname).not.toMatch(
+      /^\/(?:admin|account|api|auth|cart|checkout|favorites|search|login|register|forgot-password|reset-password)(?:\/|$)/,
+    );
+    expect(url.pathname).not.toBe("/product/checkout-test-set");
+  }
+  const robotsResponse = await fetch(base + "/robots.txt");
+  expect(robotsResponse.status).toBe(200);
+  expect(await robotsResponse.text()).toContain(
+    `Sitemap: ${new URL(canonical).origin}/sitemap.xml`,
+  );
   await mkdir(".tools", { recursive: true });
   await page.screenshot({
     path: ".tools/production-home-desktop.png",
@@ -99,6 +129,27 @@ try {
   ]) {
     await page.goto(base + path);
     await expect(page.locator("main h1")).toHaveCount(1);
+  }
+  for (const path of [
+    "/missing-page-production-check",
+    "/product/missing-product-production-check",
+  ]) {
+    const response = await page.goto(base + path);
+    // Next can stream a not-found response with HTTP 200; it must still be
+    // explicitly noindex and show the custom recovery UI in either case.
+    expect([200, 404]).toContain(response?.status());
+    await expect(
+      page.getByRole("heading", {
+        name: "A DIFFERENT DIRECTION.",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.locator('meta[name="robots"][content*="noindex"]').first(),
+    ).toHaveAttribute("content", /noindex/);
+    await expect(
+      page.getByRole("link", { name: "Explore Stride", exact: true }),
+    ).toHaveAttribute("href", "/shop/all");
   }
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(base);
@@ -145,7 +196,7 @@ try {
     throw new Error("Email worker must require authorization");
   if (errors.length) throw new Error(errors.join("\n"));
   console.log(
-    "Production smoke passed: public pages, product gallery, canonical/social PNG, mobile layout, security headers, private routes/APIs and disabled unauthorized email worker; zero browser page errors.",
+    "Production smoke passed: public pages, product gallery, custom 404/noindex, sitemap/robots, canonical/social PNG, mobile layout, security headers, private routes/APIs and disabled unauthorized email worker; zero browser page errors.",
   );
 } finally {
   if (browser) await browser.close();

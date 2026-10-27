@@ -4,7 +4,7 @@ import { assertSameOrigin, json } from "@/lib/account-http";
 import { OrderError } from "@/lib/orders";
 import { AdminError } from "@/lib/admin-products";
 export const orderColumns =
-  "id,status,payment_status,payment_method,currency,items,address,subtotal_minor,shipping_minor,total_minor,courier,tracking_reference,created_at,updated_at";
+  "id,status,payment_status,payment_method,currency,items,address,subtotal_minor,shipping_minor,total_minor,courier,tracking_reference,created_at,updated_at,is_test";
 export async function orderClient() {
   const client = await accountClient();
   const { data, error } = await client.auth.getUser();
@@ -50,6 +50,10 @@ export async function orderBody(request: Request) {
   }
 }
 const errors: Record<string, [string, number]> = {
+  test_mixed: [
+    "Keep test products in a separate order. Remove other items from your bag before testing.",
+    400,
+  ],
   operation_rate_limit: [
     "Too many requests were made recently. Try again later.",
     429,

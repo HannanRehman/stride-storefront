@@ -14,14 +14,14 @@ export async function adminBody(request: Request) {
   }
 }
 
-export async function ownerClient() {
+export async function ownerIdentity() {
   const client = await accountClient();
   const { data, error } = await client.auth.getUser();
   if (error || !data.user)
     throw new AdminError("Sign in to access the owner dashboard.", 401);
   const membership = await client
     .from("store_owners")
-    .select("user_id")
+    .select("user_id,mfa_required")
     .eq("user_id", data.user.id)
     .maybeSingle();
   if (membership.error)
@@ -31,12 +31,36 @@ export async function ownerClient() {
     );
   if (!membership.data)
     throw new AdminError("This account does not have owner access.", 403);
-  return { client, user: data.user };
+  return {
+    client,
+    user: data.user,
+    mfaRequired: membership.data.mfa_required === true,
+  };
+}
+export async function ownerClient() {
+  const session = await ownerIdentity();
+  if (session.mfaRequired) {
+    const { data, error } =
+      await session.client.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error || data?.currentLevel !== "aal2")
+      throw new AdminError(
+        "Verify your authenticator in Security before using the owner dashboard.",
+        428,
+      );
+  }
+  return session;
 }
 export async function ownerPage(next = "/admin") {
   try {
-    return { session: await ownerClient(), error: null };
+    return {
+      session: await (next === "/admin/security"
+        ? ownerIdentity()
+        : ownerClient()),
+      error: null,
+    };
   } catch (error) {
+    if (error instanceof AdminError && error.status === 428)
+      redirect(`/admin/security?next=${encodeURIComponent(next)}`);
     if (error instanceof AdminError && error.status === 401)
       redirect(`/login?next=${encodeURIComponent(next)}`);
     return {

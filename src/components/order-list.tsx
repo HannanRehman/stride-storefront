@@ -89,6 +89,7 @@ export function OrderList({ owner = false }: { owner?: boolean }) {
                 <Link href={`${owner ? "/admin" : "/account"}/orders/${o.id}`}>
                   <div>
                     <strong>{orderReference(o.id)}</strong>
+                    {o.is_test && <span>Test order · no dispatch</span>}
                     <span>{orderDate(o.created_at)}</span>
                     {owner && (
                       <span>

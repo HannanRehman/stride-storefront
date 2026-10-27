@@ -24,6 +24,7 @@ export type ProductRecord = {
   published: boolean;
   ever_published: boolean;
   orderable?: boolean;
+  test_only?: boolean;
   updated_at: string;
 };
 export class AdminError extends Error {
@@ -206,6 +207,7 @@ export function recordToProduct(row: ProductRecord): Product {
     compareAt: row.compare_at_minor ?? undefined,
     currency: row.currency,
     orderable: row.orderable === true,
+    testOnly: row.test_only === true,
     image: row.image,
     images: row.images?.length ? row.images : undefined,
     color: row.color,

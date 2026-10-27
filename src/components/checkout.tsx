@@ -41,6 +41,7 @@ function CheckoutSession() {
   const [reload, setReload] = useState(0);
   const [pending, setPending] = useState<Attempt | null>(null);
   const [receipt, setReceipt] = useState("");
+  const [receiptIsTest, setReceiptIsTest] = useState(false);
   const submitting = useRef(false);
   const key = `stride-checkout-pending:${user?.id || "guest"}`;
   useEffect(() => {
@@ -163,6 +164,7 @@ function CheckoutSession() {
         throw new Error(result.error);
       }
       setReceipt(result.id);
+      setReceiptIsTest(attempt.quote.is_test === true);
       sessionStorage.removeItem(key);
       setPending(null);
       notifyAccount();
@@ -181,10 +183,11 @@ function CheckoutSession() {
     return (
       <main id="main" className="checkout-page section">
         <div className="checkout-received">
-          <h1>Order received.</h1>
+          <h1>{receiptIsTest ? "Test order received." : "Order received."}</h1>
           <p>
-            Your cash on delivery order is awaiting confirmation from the store.
-            No online payment was taken.
+            {receiptIsTest
+              ? "Your test order is saved. No parcel will be sent, payment collected or order email sent. You can follow its status in your account."
+              : "Your cash on delivery order is awaiting confirmation from the store. No online payment was taken."}
           </p>
           <Button asChild>
             <Link href={`/account/orders/${receipt}`}>View your order</Link>
@@ -197,15 +200,29 @@ function CheckoutSession() {
       </main>
     );
   const review = pending?.quote || (quotedFor === signature ? quote : null);
+  const isTest = review?.is_test === true;
   return (
     <main id="main" className="checkout-page section">
       <Link href="/cart" className="checkout-back">
         Back to your bag
       </Link>
       <h1>Checkout</h1>
+      <ol className="checkout-steps" aria-label="Checkout progress">
+        <li aria-current="step">1. Delivery and review</li>
+        <li>2. Order received</li>
+      </ol>
       <p className="checkout-intro">
-        Delivered in Pakistan. Pay cash when your order arrives.
+        {isTest
+          ? "Test checkout. No delivery or payment will take place."
+          : "Delivered in Pakistan. Pay cash when your order arrives."}
       </p>
+      {isTest && (
+        <p className="checkout-message">
+          This is a test order using simulated stock. Use dummy delivery
+          details, such as Test Customer, Test Street, Lahore, Punjab and
+          03001234567. The delivery charge is included for testing only.
+        </p>
+      )}
       {!ready ? (
         <p role="status">Loading your bag…</p>
       ) : !user ? (
@@ -386,8 +403,9 @@ function CheckoutSession() {
                 <div className="checkout-payment">
                   <h2>Cash on delivery</h2>
                   <p>
-                    Pay the full order total to the courier on delivery. Your
-                    order is subject to stock and store confirmation.
+                    {isTest
+                      ? "Simulated cash on delivery. No money is due and no courier will be booked."
+                      : "Pay the full order total to the courier on delivery. Your order is subject to stock and store confirmation."}
                   </p>
                 </div>
                 <p className="form-note">
@@ -407,7 +425,9 @@ function CheckoutSession() {
                     ? "Confirming order…"
                     : pending
                       ? "Retry the same order"
-                      : "Place order · cash on delivery"}
+                      : isTest
+                        ? "Place test order"
+                        : "Place order · cash on delivery"}
                 </Button>
               </form>
               <aside className="checkout-summary" aria-label="Order review">
@@ -437,7 +457,11 @@ function CheckoutSession() {
                         <dd>{money(review.shipping_minor, "PKR")}</dd>
                       </div>
                       <div className="checkout-total">
-                        <dt>Total to pay on delivery</dt>
+                        <dt>
+                          {isTest
+                            ? "Simulated order total"
+                            : "Total to pay on delivery"}
+                        </dt>
                         <dd>{money(review.total_minor, "PKR")}</dd>
                       </div>
                     </dl>

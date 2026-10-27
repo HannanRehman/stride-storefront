@@ -24,10 +24,21 @@ export function DialogContent({
         className={cn("dialog-content", className)}
         {...props}
         onOpenAutoFocus={(event) => {
-          previousFocus.current =
-            document.activeElement instanceof HTMLElement
-              ? document.activeElement
+          // Safari does not focus a button when it is clicked. Prefer the
+          // dialog's registered trigger over the previously active element.
+          const content = event.target;
+          const trigger =
+            content instanceof HTMLElement && content.id
+              ? document.querySelector<HTMLElement>(
+                  `[aria-controls="${CSS.escape(content.id)}"]`,
+                )
               : null;
+          previousFocus.current =
+            trigger ||
+            (document.activeElement instanceof HTMLElement &&
+            document.activeElement !== document.body
+              ? document.activeElement
+              : null);
           onOpenAutoFocus?.(event);
         }}
         onCloseAutoFocus={(event) => {

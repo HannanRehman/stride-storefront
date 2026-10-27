@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { filterProducts, parseFilters, products } from "../../src/lib/catalog";
 import { money } from "../../src/lib/utils";
 describe("public catalog rules", () => {
+  it("keeps owner test merchandise out of shopping and search results", () => {
+    const testProduct = { ...products[0], id: "test-only", testOnly: true };
+    expect(filterProducts([testProduct, products[0]], {})).toEqual([products[0]]);
+    expect(filterProducts([testProduct], { q: testProduct.name })).toEqual([]);
+  });
   it("has unique original slugs and valid money/availability", () => {
     expect(products.length).toBeGreaterThanOrEqual(36);
     expect(new Set(products.map((p) => p.slug)).size).toBe(products.length);

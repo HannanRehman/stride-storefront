@@ -40,6 +40,7 @@ test("auth rejects foreign origins and protected writes", async ({
 test("account shopping merges once, persists across devices, and profile/addresses work", async ({
   page,
   browser,
+  baseURL,
 }) => {
   test.skip(
     !process.env.ACCOUNT_TEST_EMAIL || !process.env.ACCOUNT_TEST_PASSWORD,
@@ -100,7 +101,7 @@ test("account shopping merges once, persists across devices, and profile/address
   const other = await browser.newContext();
   const device = await other.newPage();
   try {
-    await device.goto("http://127.0.0.1:3000/login");
+    await device.goto(new URL("/login", baseURL).href);
     await device
       .getByLabel("Email address")
       .fill(process.env.ACCOUNT_TEST_EMAIL!);
@@ -109,9 +110,9 @@ test("account shopping merges once, persists across devices, and profile/address
       .fill(process.env.ACCOUNT_TEST_PASSWORD!);
     await device.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(device).toHaveURL(/\/account$/);
-    await device.goto("http://127.0.0.1:3000/cart");
+    await device.goto(new URL("/cart", baseURL).href);
     await expect(device.locator(".bag-quantity span")).toHaveText("1");
-    await device.goto("http://127.0.0.1:3000/favorites");
+    await device.goto(new URL("/favorites", baseURL).href);
     await expect(device.locator("main .product-card")).toHaveCount(1);
   } finally {
     await other.close();

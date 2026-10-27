@@ -1,5 +1,7 @@
 # Cash on delivery checkout and order management
 
+October 27 update: [test orders](OWNER_TEST_ORDERS.md) allow any signed-in account to rehearse with a separate test set while real-product ordering stays closed. The test-only owner restriction has been removed through migration `20261027124731_signed_in_test_orders`; admin authorization remains enforced. Application changes require deployment for the live site.
+
 Implemented and locally verified on October 27, 2026. Supabase migrations `20261026225242_checkout_orders`, `20261026225251_store_operations` and `20261026225739_private_rpc_implementations` are applied and their hosted SQL assertions passed. Public ordering remains closed, all 36 existing demo products remain ineligible, both owners are intact, and no orders, jobs or fixture accounts remain. The owner authorized pushing/deploying this tested application release.
 
 ## Behavior

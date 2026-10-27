@@ -39,6 +39,7 @@ export type QuoteLine = CheckoutItem & {
   line_minor: number;
 };
 export type OrderQuote = {
+  is_test?: boolean;
   items: QuoteLine[];
   currency: "PKR";
   subtotal_minor: number;
@@ -46,6 +47,7 @@ export type OrderQuote = {
   total_minor: number;
 };
 export type StoreOrder = {
+  is_test?: boolean;
   id: string;
   status: OrderStatus;
   payment_status: "unpaid" | "collected";

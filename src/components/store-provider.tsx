@@ -46,6 +46,7 @@ function subscribe(callback: () => void) {
 type Store = Stored & {
   user: { id: string; email: string } | null;
   catalog: Product[];
+  orderingOpen: boolean;
   ready: boolean;
   saving: boolean;
   syncError: string;
@@ -59,9 +60,11 @@ type Store = Stored & {
 const Context = createContext<Store | null>(null);
 export function StoreProvider({
   catalog,
+  orderingOpen = false,
   children,
 }: {
   catalog: Product[];
+  orderingOpen?: boolean;
   children: React.ReactNode;
 }) {
   const snapshot = useSyncExternalStore(subscribe, read, () => EMPTY);
@@ -441,6 +444,7 @@ export function StoreProvider({
         ...state,
         user,
         catalog,
+        orderingOpen,
         ready,
         saving,
         syncError,

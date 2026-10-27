@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <main id="main" className="section" aria-busy="true">
+    <main id="main" className="section loading-surface" aria-busy="true">
       <span className="sr-only" role="status">
         Loading Stride…
       </span>

@@ -119,6 +119,12 @@ export function OrderDetail({
           </button>
           {order && (
             <>
+              {order.is_test && (
+                <p className="checkout-message">
+                  Test order. All statuses, tracking and payment records are
+                  simulated. Do not dispatch a parcel or collect payment.
+                </p>
+              )}
               <div className="order-heading">
                 <div>
                   <h2>Order {orderReference(order.id)}</h2>
@@ -188,11 +194,13 @@ export function OrderDetail({
                   </address>
                   <h3>Payment</h3>
                   <p>
-                    {order.payment_status === "collected"
-                      ? "Cash collected on delivery"
-                      : order.status === "cancelled"
-                        ? "Cancelled · no payment collected"
-                        : `Cash on delivery · ${money(order.total_minor, "PKR")} due`}
+                    {order.is_test
+                      ? "Simulated payment only · no money due or collected"
+                      : order.payment_status === "collected"
+                        ? "Cash collected on delivery"
+                        : order.status === "cancelled"
+                          ? "Cancelled · no payment collected"
+                          : `Cash on delivery · ${money(order.total_minor, "PKR")} due`}
                   </p>
                   {order.tracking_reference && (
                     <>
@@ -296,13 +304,15 @@ export function OrderDetail({
               : `Mark order ${target}?`}
           </DialogTitle>
           <DialogDescription>
-            {target === "delivered"
-              ? "Only continue after delivery and cash collection have been verified. This records payment as collected."
-              : target === "cancelled"
-                ? "The reserved stock will be returned. This cannot be undone."
-                : target === "shipped"
-                  ? "Confirm the parcel has been handed to the courier. The customer will see the tracking reference."
-                  : "Confirm stock and delivery details before accepting this order."}
+            {order?.is_test
+              ? "This changes a test order only. Delivery and payment collection are simulated; no parcel should be sent. Cancelling returns the simulated stock."
+              : target === "delivered"
+                ? "Only continue after delivery and cash collection have been verified. This records payment as collected."
+                : target === "cancelled"
+                  ? "The reserved stock will be returned. This cannot be undone."
+                  : target === "shipped"
+                    ? "Confirm the parcel has been handed to the courier. The customer will see the tracking reference."
+                    : "Confirm stock and delivery details before accepting this order."}
           </DialogDescription>
           <div className="order-actions">
             <button

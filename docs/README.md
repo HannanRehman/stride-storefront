@@ -1,6 +1,6 @@
 # Stride public storefront
 
-October 27: checkout, order management, homepage CMS, private customer requests, launch interest, email infrastructure and launch readiness are implemented and locally verified. Their three Supabase migrations are applied; public ordering remains closed, all demo products remain ineligible, and email sending is disabled. The owner authorized pushing/deploying this tested release. See [checkout setup](./CHECKOUT_ORDERS_SETUP.md) and [store operations](./STORE_OPERATIONS_SETUP.md).
+October 27 improvements: performance/layout fixes, compact mobile navigation/footer, sectioned CMS, consistent shopping states and staged owner MFA/shared abuse controls are implemented. Any signed-in account can use the separate test set; real-product sales remain closed and order emails are suppressed for tests. Admin access still requires owner membership. The latest application changes and 11 email drafts have not been committed, pushed or deployed. See [implementation and verification results](./IMPROVEMENTS_IMPLEMENTATION.md) and the [original full audit](./FULL_SITE_TEST_REPORT.md).
 
 ## Documentation
 
@@ -16,6 +16,9 @@ All project documentation and plans live in this folder. Commands and code paths
 - [Storefront design](./PUBLIC_STOREFRONT_DESIGN.md)
 - [Account implementation](./ACCOUNT_IMPLEMENTATION.md) and [auth setup](./AUTH_SETUP.md)
 - [Website improvement audit](./WEBSITE_IMPROVEMENT_AUDIT.md)
+- [Current visual/feel review](./WEBSITE_DESIGN_REVIEW.md) and [full component audit](./FULL_SITE_TEST_REPORT.md)
+- [Improvements implementation](./IMPROVEMENTS_IMPLEMENTATION.md), [security setup](./SECURITY_SETUP.md) and [backup/recovery acceptance](./BACKUP_RECOVERY.md)
+- [Test checkout guide](./OWNER_TEST_ORDERS.md) and [11 email drafts](./email-templates/README.md)
 - [Pre-push audit: October 15](./PRE_PUSH_AUDIT_2026-10-15.md)
 - [Validation results](./VALIDATION.md)
 - [Asset credits](./ASSET_CREDITS.md) and [brand name ideas](./BRAND_NAME_IDEAS.md)
@@ -75,7 +78,7 @@ The supplied master specification remains unchanged. [IMPLEMENTATION_PLAN.md](./
 
 Sign-in, sign-out, profile/addresses and account shopping are enabled when the two Supabase variables are set. Signup and recovery additionally require `AUTH_EMAIL_ENABLED=true` after email delivery and redirect configuration are verified. The default is disabled, with a clear message in the forms. Configuring this flag alone does not configure email delivery.
 
-Sessions use HTTP-only, SameSite=Lax cookies and Secure cookies in production. Proxy refreshes sessions on account/auth routes, while each protected page and write verifies the user again. Private responses use `private, no-store`. JSON mutations reject foreign origins. Auth endpoints add an eight-attempt/ten-minute throttle per IP/action/email within each server instance, alongside Supabase Auth's provider-side rate limits; it is not a shared distributed application limiter. Tune provider limits and configure production bot protection before broader launch.
+Sessions use HTTP-only, SameSite=Lax cookies and Secure cookies in production. Proxy refreshes sessions on account/auth routes, while each protected page and write verifies the user again. Private responses use `private, no-store`. JSON mutations reject foreign origins. Auth, MFA and launch endpoints use shared database request limits alongside Supabase Auth's provider-side limits. Configure `SECURITY_RPC_SECRET` and its private database digest before deploying these routes; they fail closed when the gateway is unavailable. Owner MFA is staged per membership and becomes mandatory after that owner verifies enrollment. See [security setup](./SECURITY_SETUP.md) for deployment order and recovery.
 
 Signed-in shopping is stored on the server. Guest bag quantities merge into existing account quantities with demo stock caps; favorites are unioned. A merge receipt prevents retries from adding items twice. Guest selections clear only after success. Failed saves show an explicit retry message, and no account selections are copied into guest storage on logout. Focus and same-browser tab notifications refresh account data; this is not a live subscription across devices.
 

@@ -20,6 +20,10 @@ export default async function Page() {
         your profile and addresses up to date here.
       </p>
       <div className="account-overview-links">
+        <Link href="/product/checkout-test-set">
+          <h3>Try test checkout</h3>
+          <p>Place a simulated order. No payment or delivery takes place.</p>
+        </Link>
         <Link href="/account/orders">
           <h3>Your orders</h3>
           <p>Track your orders and delivery details.</p>

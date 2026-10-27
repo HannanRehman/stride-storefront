@@ -1,5 +1,34 @@
 # Public storefront validation
 
+## Recommendations implementation — October 27, 2026
+
+Current local results: **33 unit tests**, **52 full Google Chrome scenarios** (20 commerce/security, 6 owner products, 26 public) and **12 production checks across Chrome, Firefox and WebKit** passed. One optional genuine hosted-account browser journey remains skipped. Lint, TypeScript production compilation, optimized build, Chrome production smoke and the 63-page public crawl passed. Eleven offline email drafts passed at four widths; no email was sent.
+
+All six SQL assertion suites passed locally and on hosted Supabase with rollback, including MFA/direct-RPC/RLS/shared-limit checks. The separate disposable restore drill passed order, stock, history and membership comparisons plus all six assertions after restoration. WebKit exposed a dialog-focus issue; the fix passed the complete production browser matrix. The latest mobile samples recorded zero layout shift on all four profiled routes. Exact measurements, cache conditions and limitations are in the [implementation report](IMPROVEMENTS_IMPLEMENTATION.md).
+
+Security migration `20261027140044_security_hardening` is applied, with matching private gateway configuration locally and encrypted in Vercel Production. Both owner memberships remain intact and unenrolled; genuine owners must enroll only after the new security UI is deployed. Real sales remain closed, delivery PKR 250, and hosted orders/email jobs remain zero. Supabase's leaked-password protection warning remains an operator Auth-setting step. No application commit, push or deployment was performed. Project servers were stopped and generated tracked test screenshots restored.
+
+See [security setup](SECURITY_SETUP.md) and [hosted recovery acceptance](BACKUP_RECOVERY.md). The sections below preserve earlier results and superseded limitations; they are historical records.
+
+## Full audit and email drafts — October 27, 2026
+
+Latest results: **32 unit tests and 48 browser scenarios passed**, with one optional hosted-account browser scenario skipped. All five SQL suites passed locally and on Supabase with fixture rollback. Lint, type checking, production build, production smoke and the 63-page production crawl passed. Dependency audit reported zero vulnerabilities. Eleven HTML email drafts passed offline checks at four widths; no messages were sent.
+
+Migration `20261027124731_signed_in_test_orders` now lets any signed-in account order the separate test set. Real-product ordering stays closed; admin and other customers' data stay protected. The original preview links directly to test checkout. Local application changes are not committed, pushed or deployed.
+
+The production sample found slow mobile image loading and catalog layout shifts that still need attention. Read the [complete component/test report](FULL_SITE_TEST_REPORT.md), [prioritized look-and-feel review](WEBSITE_DESIGN_REVIEW.md), [test checkout instructions](OWNER_TEST_ORDERS.md) and [email drafts](email-templates/README.md). Background project servers were stopped after the checks.
+
+The sections below record earlier milestones, including the superseded owner-only test restriction.
+
+## Owner checkout rehearsal — October 27, 2026
+
+- Added an owner-only test product and authoritative test-order marker. Normal shopping/search results, product recommendations and sitemap exclude the test item; its product page is noindex.
+- Disposable SQL regression checks passed for all migrations and the owner/customer/checkout/operations assertions, including new owner test assertions. Hosted test assertions passed and rolled back; migration `20261027122354_owner_test_orders` is applied.
+- Commerce browser coverage now has 14 scenarios. Twelve passed in the first run. A new test's ambiguous text selector was narrowed; a cold-development account journey exceeded its total 60-second budget. Both failed scenarios passed on targeted rerun (the unchanged account journey completed in 25 seconds). The new owner journey checks product → bag → test checkout → receipt → admin confirmation/cancellation → private history while public ordering stays closed.
+- 32 unit tests, TypeScript, lint and production build passed. Local production smoke passed public pages, gallery, SEO/social image, mobile fit, security headers and private endpoints with zero browser errors.
+- Hosted final state: 36 original products preserved, one separate test product (PKR 7,000; S/M/L/XL with 50 simulated units each), public ordering closed, PKR 250 delivery, two owners, zero orders/email jobs and no leftover fixture users. No privileged functions were exposed in the public schema. The existing leaked-password-protection advisor warning remains.
+- No actual owner order was placed, no email sent, and no Git commit/push/deployment performed for this change. See [test instructions](OWNER_TEST_ORDERS.md).
+
 ## Store completion — October 27, 2026
 
 - Lint, TypeScript, **31 unit tests** and the Next.js **16.4.3 production build** passed.
