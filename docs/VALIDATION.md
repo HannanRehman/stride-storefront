@@ -43,7 +43,7 @@ The sections below record earlier milestones, including the superseded owner-onl
 
 The remaining sections record previous validation milestones.
 
-Validated during the October 14, 2026 implementation session in `E:\Nikereplica`.
+Validated during the October 14, 2026 implementation session in `E:\Stride-storefront`.
 
 ## Final check results
 

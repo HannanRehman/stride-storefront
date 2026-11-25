@@ -31,7 +31,7 @@ A responsive original sportswear storefront built with Next.js App Router, TypeS
 Node 24 and npm 11 were used during development. Install dependencies once, then start the app:
 
 ```powershell
-cd E:\Nikereplica
+cd E:\Stride-storefront
 npm.cmd install
 npm.cmd run dev
 ```
